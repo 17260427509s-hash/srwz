@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="填写心意，生成一份专属生日祝福和可分享的电子贺卡。"
+    />
+    <meta name="theme-color" content="#f8dfe3" />
+    <title>生日放映室｜生成专属生日祝福</title>
+    <link rel="stylesheet" href="styles.css?v=5" />
+    <script
+      defer
+      src="assets/vendor/html2canvas-1.4.1.min.js?v=1"
+    ></script>
+    <script defer src="script.js?v=5"></script>
+  </head>
+  <body>
+    <div class="ambient-dots" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="返回生日放映室首页">
+        <span>生日放映室</span>
+        <span class="brand-heart" aria-hidden="true">♡</span>
+      </a>
+    </header>
+
+    <main class="page-shell">
+      <section id="formView" class="form-layout" aria-labelledby="pageTitle">
+        <aside class="intro-panel">
+          <h1 id="pageTitle">把祝福，<br />藏进一场<br />生日惊喜</h1>
+          <span class="title-heart" aria-hidden="true">♡</span>
+          <p>填下心意，生成一份<br />只属于 TA 的生日礼物</p>
+          <img
+            class="intro-illustration"
+            src="assets/botanical-envelope.webp?v=1"
+            alt=""
+            aria-hidden="true"
+          />
+        </aside>
+
+        <section class="paper-panel" aria-label="生日祝福信息表单">
+          <div class="postage-mark" aria-hidden="true">
+            <span>♡</span>
+          </div>
+
+          <form id="blessingForm" novalidate>
+            <div class="field-grid field-grid--three">
+              <label class="field">
+                <span>寿星昵称 <b aria-hidden="true">*</b></span>
+                <input
+                  id="recipientName"
+                  name="recipientName"
+                  type="text"
+                  maxlength="20"
+                  placeholder="例如：小可爱"
+                  autocomplete="off"
+                  required
+                />
+              </label>
+              <label class="field">
+                <span>生日日期 <b aria-hidden="true">*</b></span>
+                <input id="birthday" name="birthday" type="date" required />
+              </label>
+              <label class="field">
+                <span>发送人昵称 <b aria-hidden="true">*</b></span>
+                <input
+                  id="senderName"
+                  name="senderName"
+                  type="text"
+                  maxlength="20"
+                  placeholder="例如：你的宝贝"
+                  autocomplete="off"
+                  required
+                />
+              </label>
+            </div>
+
+            <fieldset class="theme-fieldset">
+              <legend>主题色</legend>
+              <div id="themePicker" class="theme-picker">
+                <button class="theme-option is-selected" type="button" data-theme="cherry" aria-pressed="true">
+                  <span class="swatch" style="--swatch: #ef5b78"><i>✓</i></span><span>樱桃粉</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="sky" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #68b9ec"><i>✓</i></span><span>天空蓝</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="china" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #e34643"><i>✓</i></span><span>中国红</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="tiffany" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #49c2bc"><i>✓</i></span><span>蒂芙尼蓝</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="avocado" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #9fc55a"><i>✓</i></span><span>牛油果绿</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="rose" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #a86ed0"><i>✓</i></span><span>玫瑰紫</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="cream" aria-pressed="false">
+                  <span class="swatch" style="--swatch: #f1a158"><i>✓</i></span><span>奶油橙</span>
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="field blessing-field">
+              <div class="field-heading">
+                <label for="message">祝福语 <b aria-hidden="true">*</b></label>
+                <button id="shuffleMessage" class="text-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>
+                  换一条
+                </button>
+              </div>
+              <textarea id="message" name="message" maxlength="240" required>愿你新的一岁，眼里有光，心中有爱，所愿皆所得。</textarea>
+              <span id="messageCounter" class="char-counter">25 / 240</span>
+            </div>
+
+            <label class="field">
+              <span>寿星邮箱 <em>（选填）</em></span>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                maxlength="254"
+                placeholder="仅保存到祝福记录中，不会自动发送邮件"
+                autocomplete="email"
+              />
+            </label>
+
+            <div class="media-grid">
+              <section class="media-field" aria-labelledby="photoLabel">
+                <div class="media-heading">
+                  <h2 id="photoLabel">照片 <em>（选填，最多 3 张）</em></h2>
+                  <span id="photoCount">0 / 3</span>
+                </div>
+                <input
+                  id="photoInput"
+                  class="visually-hidden"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                />
+                <label class="upload-dropzone" for="photoInput">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-4 6 5-4 3 3 2-2 6 4" /></svg>
+                  <span><strong>点击选择照片</strong><small>支持 JPG、PNG、WebP，单张不超过 10 MB</small></span>
+                </label>
+                <div id="photoPreviews" class="photo-previews" aria-live="polite"></div>
+                <p id="photoError" class="field-message" role="alert"></p>
+              </section>
+
+              <section class="media-field" aria-labelledby="audioLabel">
+                <div class="media-heading">
+                  <h2 id="audioLabel">语音留言 <em>（选填）</em></h2>
+                  <span>最长 60 秒</span>
+                </div>
+
+                <div id="audioControls" class="audio-recorder" hidden>
+                  <button id="recordButton" class="record-button" type="button">
+                    <span class="record-dot" aria-hidden="true"></span>
+                    <span id="recordButtonText">开始录音</span>
+                  </button>
+                  <time id="recordTimer" datetime="PT0S">00:00 / 01:00</time>
+                </div>
+                <p id="audioStatus" class="audio-status" aria-live="polite"></p>
+                <div id="audioPreview" class="audio-preview" hidden>
+                  <audio id="audioPlayer" controls preload="metadata"></audio>
+                  <button id="deleteAudio" class="mini-action" type="button">删除录音</button>
+                </div>
+                <div id="audioUnsupported" class="compatibility-note" role="status" hidden></div>
+              </section>
+            </div>
+
+            <div id="storageWarning" class="storage-warning" role="alert" hidden></div>
+
+            <button id="generateButton" class="primary-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v11H4zM12 10v11M2 7h20v3H2zM12 7H7.5a2.5 2.5 0 1 1 2.5-2.5C10 6 12 7 12 7Zm0 0h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7Z" /></svg>
+              立即生成
+            </button>
+          </form>
+        </section>
+      </section>
+
+      <section id="resultView" class="result-view" aria-labelledby="resultTitle" hidden>
+        <div class="result-heading">
+          <p class="result-brand">生日放映室 <span aria-hidden="true">— ♡ —</span></p>
+          <h1 id="resultTitle">专属祝福已生成</h1>
+          <p>准备好，把惊喜送给 TA 吧</p>
+        </div>
+
+        <div class="generated-card-wrap">
+          <button id="cardImageButton" class="card-image-button" type="button" aria-label="放大查看贺卡图片">
+            <img id="generatedCardImage" alt="生成的生日贺卡，可长按保存到相册" />
+          </button>
+          <p class="long-press-tip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11V6a2 2 0 1 1 4 0v5-2a2 2 0 1 1 4 0v3-1a2 2 0 1 1 4 0v4c0 4-3 7-7 7h-1c-3 0-5-1-7-4l-2-3a2 2 0 0 1 3-3l2 2" /></svg>
+            手机端可点击放大，再长按图片保存到相册
+          </p>
+        </div>
+
+        <div class="share-link-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l2-2" /></svg>
+          <input id="shareLink" readonly aria-label="专属祝福链接" />
+        </div>
+
+        <div class="result-actions">
+          <button id="copyLinkButton" class="primary-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8zM4 16V4h12" /></svg>
+            复制链接
+          </button>
+          <a id="downloadCardButton" class="secondary-button" href="#" download>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v4h16v-4" /></svg>
+            下载贺卡图片
+          </a>
+          <button id="backToEdit" class="back-button" type="button">返回修改</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="cardRenderStage" class="card-render-stage" aria-hidden="true">
+      <article id="cardTemplate" class="birthday-card">
+        <div class="card-frame">
+          <div class="card-stamp"><span>Especially</span><b>♡</b><span>for you</span></div>
+          <span class="card-tape" aria-hidden="true"></span>
+          <img class="card-sprig card-sprig--left" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
+          <img class="card-sprig card-sprig--right" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
+          <div class="card-confetti" aria-hidden="true">♡　·　♡　·　♡</div>
+          <p class="card-happy">Happy Birthday</p>
+          <span class="card-flourish" aria-hidden="true">— ♡ —</span>
+          <h2 id="cardRecipient">小可爱</h2>
+          <div class="card-divider"><span>♡</span></div>
+          <time id="cardDate">2026.08.20</time>
+          <p id="cardMessage">愿你新的一岁，眼里有光，心中有爱，所愿皆所得。</p>
+          <p id="cardSender">— 来自你的宝贝</p>
+        </div>
+      </article>
+    </div>
+
+    <div id="imageModal" class="image-modal" hidden>
+      <button id="closeImageModal" class="modal-close" type="button" aria-label="关闭图片预览">×</button>
+      <img id="modalCardImage" alt="放大的生日贺卡，可长按保存到相册" />
+      <p>长按图片，选择“保存图片”或“存储到照片”</p>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+      <span aria-hidden="true">✓</span><span id="toastText">复制成功</span>
+    </div>
+  </body>
+</html>

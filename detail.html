@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fde8ec" />
+    <meta name="description" content="打开一份为你准备的专属生日祝福。" />
+    <title>一份专属生日祝福</title>
+    <link rel="stylesheet" href="detail.css?v=3" />
+    <script defer src="assets/vendor/canvas-confetti-1.9.3.min.js?v=1"></script>
+    <script defer src="detail.js?v=2"></script>
+  </head>
+  <body>
+    <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
+
+    <main>
+      <section id="loadingView" class="status-view">
+        <span class="status-heart" aria-hidden="true">♡</span>
+        <p>正在打开这份心意…</p>
+      </section>
+
+      <section id="errorView" class="status-view" hidden>
+        <div class="error-paper">
+          <span class="status-heart" aria-hidden="true">♡</span>
+          <h1 id="errorTitle">没有找到这份祝福</h1>
+          <p id="errorMessage">请确认链接是否完整后再试一次。</p>
+          <a href="index.html">去制作一份祝福</a>
+        </div>
+      </section>
+
+      <section id="coverView" class="cover-view" aria-labelledby="coverTitle" hidden>
+        <img class="cover-sprig cover-sprig--top" src="assets/card-botanical-sprig.webp?v=2" alt="" />
+        <div class="cover-copy">
+          <h1 id="coverTitle">有一份特别的心意，想送给你</h1>
+          <p id="coverRecipient">小可爱，准备好拆开惊喜了吗？</p>
+        </div>
+        <div class="envelope-scene" aria-hidden="true">
+          <span class="envelope-glow"></span>
+          <img src="assets/botanical-envelope.webp?v=1" alt="" />
+        </div>
+        <button id="enterButton" class="enter-button" type="button">
+          <span>进入祝福</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+        </button>
+        <p class="cover-note">点击后开启这场生日放映</p>
+      </section>
+
+      <section id="storyView" class="story-view" hidden>
+        <div class="story-progress" aria-label="祝福阅读进度">
+          <span id="progressBar"></span>
+        </div>
+
+        <div id="storyScroller" class="story-scroller" tabindex="-1">
+          <section class="story-screen hero-screen" data-screen="0" aria-labelledby="heroTitle">
+            <img class="hero-sprig" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
+            <div class="screen-content hero-content">
+              <p id="birthdayDate" class="birthday-date"></p>
+              <h1 id="heroTitle" class="letter-reveal" aria-label="Happy Birthday"></h1>
+              <p id="heroSubtitle">今天，世界因你而闪闪发光</p>
+              <div class="hero-name"><span>for</span><strong id="heroRecipient"></strong></div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--one" data-screen="1">
+            <div class="screen-content photo-layout">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage1" alt="生日祝福照片一" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🎂</span>
+                <p>愿每一岁的你，<br />都奔走在热爱里</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--two" data-screen="2">
+            <div class="screen-content photo-layout photo-layout--reverse">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage2" alt="生日祝福照片二" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🎉</span>
+                <p>愿快乐不止今天，<br />也住进每一个清晨</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--three" data-screen="3">
+            <div class="screen-content photo-layout">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage3" alt="生日祝福照片三" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🥂</span>
+                <p>愿所有美好，<br />都在新一岁如期而至</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen final-screen" data-screen="4" aria-labelledby="finalTitle">
+            <img class="final-sprig final-sprig--top" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
+            <img class="final-sprig final-sprig--bottom" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
+            <div class="screen-content final-content">
+              <h2 id="finalTitle">给最特别的你</h2>
+              <article class="letter-paper">
+                <span class="paper-heart" aria-hidden="true">♡</span>
+                <p id="finalMessage"></p>
+                <footer>来自 <strong id="finalSender"></strong> 的祝福</footer>
+              </article>
+              <button id="likeButton" class="like-button" type="button" aria-pressed="false">
+                <span>❤️</span><b>喜欢</b><small id="likeCount"></small>
+              </button>
+              <button id="replayButton" class="replay-button" type="button">再看一次</button>
+            </div>
+          </section>
+        </div>
+
+        <div id="screenDots" class="screen-dots" aria-hidden="true">
+          <span class="is-active"></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div id="audioDock" class="audio-dock" hidden>
+          <button id="audioToggle" type="button" aria-label="播放语音留言">
+            <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z" /></svg>
+            <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10" /></svg>
+          </button>
+          <div class="audio-meta">
+            <strong>一段语音心意</strong>
+            <span id="audioTime">00:00 / 00:00</span>
+          </div>
+          <div class="audio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <audio id="blessingAudio" preload="metadata"></audio>
+        </div>
+      </section>
+    </main>
+
+    <div id="heartBurst" class="heart-burst" aria-hidden="true"></div>
+  </body>
+</html>

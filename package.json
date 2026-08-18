@@ -1,0 +1,24 @@
+{
+  "name": "birthday-blessing-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "可跨设备分享的生日祝福生成器",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@fontsource/pacifico": "^5.3.0",
+    "@fontsource/zcool-kuaile": "^5.3.0",
+    "canvas-confetti": "^1.9.3",
+    "html2canvas": "^1.4.1"
+  }
+}
