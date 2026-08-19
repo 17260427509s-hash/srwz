@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 生日祝福生成器：Ubuntu 22.04/24.04 一键部署脚本
-# 功能：安装 Node.js 20、Nginx，配置 systemd，并保留独立的 SQLite 数据目录。
+# 功能：安装 Node.js 22、Nginx，配置 systemd，并保留独立的 SQLite 数据目录。
 
 set -Eeuo pipefail
 
@@ -21,12 +21,12 @@ echo "[1/7] 安装系统依赖..."
 apt-get update
 apt-get install -y --no-install-recommends ca-certificates curl gnupg git nginx build-essential python3
 
-if ! command -v node >/dev/null 2>&1 || [[ "$(node -p 'process.versions.node.split(`.`)[0]' 2>/dev/null || echo 0)" -lt 20 ]]; then
-  echo "[2/7] 安装 Node.js 20..."
+if ! command -v node >/dev/null 2>&1 || [[ "$(node -p 'process.versions.node.split(`.`)[0]' 2>/dev/null || echo 0)" -lt 22 ]]; then
+  echo "[2/7] 安装 Node.js 22..."
   install -d -m 0755 /etc/apt/keyrings
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
     | gpg --dearmor --yes -o /etc/apt/keyrings/nodesource.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
     > /etc/apt/sources.list.d/nodesource.list
   apt-get update
   apt-get install -y --no-install-recommends nodejs
