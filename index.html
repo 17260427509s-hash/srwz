@@ -151,26 +151,6 @@
                 <p id="photoError" class="field-message" role="alert"></p>
               </section>
 
-              <section class="media-field" aria-labelledby="audioLabel">
-                <div class="media-heading">
-                  <h2 id="audioLabel">语音留言 <em>（选填）</em></h2>
-                  <span>最长 60 秒</span>
-                </div>
-
-                <div id="audioControls" class="audio-recorder" hidden>
-                  <button id="recordButton" class="record-button" type="button">
-                    <span class="record-dot" aria-hidden="true"></span>
-                    <span id="recordButtonText">开始录音</span>
-                  </button>
-                  <time id="recordTimer" datetime="PT0S">00:00 / 01:00</time>
-                </div>
-                <p id="audioStatus" class="audio-status" aria-live="polite"></p>
-                <div id="audioPreview" class="audio-preview" hidden>
-                  <audio id="audioPlayer" controls preload="metadata"></audio>
-                  <button id="deleteAudio" class="mini-action" type="button">删除录音</button>
-                </div>
-                <div id="audioUnsupported" class="compatibility-note" role="status" hidden></div>
-              </section>
             </div>
 
             <div id="storageWarning" class="storage-warning" role="alert" hidden></div>

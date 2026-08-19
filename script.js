@@ -3,7 +3,6 @@
 const MAX_API_RECORD_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGES = 3;
-const MAX_RECORDING_MS = 60_000;
 
 const THEMES = {
   cherry: { key: "cherry", label: "樱桃粉", color: "#ef5b78", softColor: "#fde8ec" },
@@ -33,14 +32,7 @@ const BLESSINGS = [
 const state = {
   theme: THEMES.cherry,
   images: [],
-  audio: null,
   currentId: null,
-  recorder: null,
-  stream: null,
-  chunks: [],
-  timerId: null,
-  recordStartedAt: 0,
-  chosenMimeType: "",
   toastTimer: null,
 };
 
@@ -50,16 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
   cacheDom();
   bindEvents();
   updateMessageCounter();
-  setupRecordingCapability();
 });
 
 function cacheDom() {
   [
     "formView", "resultView", "blessingForm", "recipientName", "birthday", "senderName",
     "message", "messageCounter", "email", "themePicker", "shuffleMessage", "photoInput",
-    "photoPreviews", "photoCount", "photoError", "audioControls", "audioUnsupported",
-    "audioStatus", "recordButton", "recordButtonText", "recordTimer", "audioPreview",
-    "audioPlayer", "deleteAudio", "storageWarning", "generateButton", "cardTemplate",
+    "photoPreviews", "photoCount", "photoError", "storageWarning", "generateButton", "cardTemplate",
     "cardRecipient", "cardDate", "cardMessage", "cardSender", "generatedCardImage",
     "cardImageButton", "shareLink", "copyLinkButton", "downloadCardButton", "backToEdit",
     "imageModal", "modalCardImage", "closeImageModal", "toast", "toastText",
@@ -74,8 +63,6 @@ function bindEvents() {
   dom.message.addEventListener("input", updateMessageCounter);
   dom.photoInput.addEventListener("change", handlePhotoSelection);
   dom.photoPreviews.addEventListener("click", handlePhotoRemoval);
-  dom.recordButton.addEventListener("click", toggleRecording);
-  dom.deleteAudio.addEventListener("click", deleteRecording);
   dom.blessingForm.addEventListener("submit", handleGenerate);
   dom.copyLinkButton.addEventListener("click", copyShareLink);
   dom.shareLink.addEventListener("click", () => dom.shareLink.select());
@@ -217,199 +204,11 @@ function handlePhotoRemoval(event) {
   renderPhotoPreviews();
 }
 
-function getEnvironment() {
-  const ua = navigator.userAgent;
-  const isWeChat = /MicroMessenger/i.test(ua);
-  const isIOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const isSafari = isIOS || (/Safari/i.test(ua) && !/Chrome|Chromium|Edg/i.test(ua));
-  const host = window.location.hostname;
-  const isLocalhost = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
-  const secureEnough = window.isSecureContext || window.location.protocol === "https:" || isLocalhost;
-  return { isWeChat, isIOS, isSafari, secureEnough };
-}
-
-function setupRecordingCapability() {
-  const env = getEnvironment();
-  if (env.isIOS && env.isWeChat) {
-    disableRecording("当前浏览器不支持录音，建议点击右上角选择用Safari浏览器打开");
-    return;
-  }
-
-  if (!env.secureEnough || !navigator.mediaDevices?.getUserMedia || typeof window.MediaRecorder === "undefined") {
-    disableRecording("当前浏览器不支持录音，建议使用系统浏览器打开");
-    return;
-  }
-
-  const candidates = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
-  state.chosenMimeType = candidates.find((type) => {
-    try {
-      return MediaRecorder.isTypeSupported(type);
-    } catch {
-      return false;
-    }
-  }) || "";
-
-  if (!state.chosenMimeType) {
-    disableRecording("当前浏览器不支持录音，建议使用系统浏览器打开");
-    return;
-  }
-
-  dom.audioUnsupported.hidden = true;
-  dom.audioControls.hidden = false;
-}
-
-function disableRecording(message) {
-  cleanupMediaStream();
-  dom.audioControls.hidden = true;
-  dom.audioPreview.hidden = true;
-  dom.audioStatus.textContent = "";
-  dom.audioUnsupported.textContent = message;
-  dom.audioUnsupported.hidden = false;
-}
-
-async function toggleRecording() {
-  if (state.recorder?.state === "recording") {
-    state.recorder.stop();
-    return;
-  }
-
-  dom.audioStatus.textContent = "";
-  try {
-    state.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-    });
-    state.chunks = [];
-    state.recorder = createMediaRecorder(state.stream, state.chosenMimeType);
-
-    state.recorder.addEventListener("dataavailable", (event) => {
-      if (event.data.size > 0) state.chunks.push(event.data);
-    });
-    state.recorder.addEventListener("stop", finishRecording, { once: true });
-    state.recorder.addEventListener("error", () => {
-      dom.audioStatus.textContent = "录音过程中出现错误，请重试。";
-      resetRecorderUi();
-      cleanupMediaStream();
-    }, { once: true });
-
-    state.recorder.start(1000);
-    state.recordStartedAt = Date.now();
-    state.audio = null;
-    dom.audioPreview.hidden = true;
-    dom.recordButton.classList.add("is-recording");
-    dom.recordButtonText.textContent = "停止录音";
-    updateRecordTimer();
-    state.timerId = window.setInterval(updateRecordTimer, 250);
-  } catch (error) {
-    cleanupMediaStream();
-    if (error?.name === "NotAllowedError") {
-      dom.audioStatus.textContent = "未获得麦克风权限，可在浏览器设置中允许后重试";
-      return;
-    }
-    if (["NotSupportedError", "SecurityError"].includes(error?.name)) {
-      const { isIOS } = getEnvironment();
-      disableRecording(isIOS
-        ? "当前浏览器不支持录音，建议点击右上角选择用Safari浏览器打开"
-        : "当前浏览器不支持录音，建议使用系统浏览器打开");
-      return;
-    }
-    dom.audioStatus.textContent = "暂时无法启动录音，请稍后再试。";
-  }
-}
-
-function updateRecordTimer() {
-  const elapsed = Math.min(Date.now() - state.recordStartedAt, MAX_RECORDING_MS);
-  dom.recordTimer.textContent = `${formatDuration(elapsed)} / 01:00`;
-  dom.recordTimer.dateTime = `PT${Math.floor(elapsed / 1000)}S`;
-  if (elapsed >= MAX_RECORDING_MS && state.recorder?.state === "recording") {
-    state.recorder.stop();
-  }
-}
-
-async function finishRecording() {
-  const durationMs = Math.min(Date.now() - state.recordStartedAt, MAX_RECORDING_MS);
-  const mimeType = state.recorder?.mimeType || state.chosenMimeType;
-  const blob = new Blob(state.chunks, { type: mimeType });
-  resetRecorderUi();
-  cleanupMediaStream();
-
-  if (!blob.size) {
-    dom.audioStatus.textContent = "没有录到声音，请重新录制。";
-    return;
-  }
-
-  try {
-    const dataUrl = await blobToDataUrl(blob);
-    state.audio = { mimeType, dataUrl, durationMs };
-    dom.audioPlayer.src = dataUrl;
-    dom.audioPreview.hidden = false;
-    dom.recordButtonText.textContent = "重新录音";
-    dom.audioStatus.textContent = `录音完成，共 ${formatDuration(durationMs)}`;
-  } catch {
-    dom.audioStatus.textContent = "录音处理失败，请重新录制。";
-  }
-}
-
-function resetRecorderUi() {
-  if (state.timerId) window.clearInterval(state.timerId);
-  state.timerId = null;
-  dom.recordButton.classList.remove("is-recording");
-  dom.recordButtonText.textContent = state.audio ? "重新录音" : "开始录音";
-  dom.recordTimer.textContent = "00:00 / 01:00";
-  dom.recordTimer.dateTime = "PT0S";
-}
-
-function cleanupMediaStream() {
-  if (state.timerId) window.clearInterval(state.timerId);
-  state.timerId = null;
-  state.stream?.getTracks().forEach((track) => track.stop());
-  state.stream = null;
-}
-
-function deleteRecording() {
-  state.audio = null;
-  dom.audioPlayer.removeAttribute("src");
-  dom.audioPlayer.load();
-  dom.audioPreview.hidden = true;
-  dom.audioStatus.textContent = "录音已删除。";
-  resetRecorderUi();
-}
-
-function formatDuration(milliseconds) {
-  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
-  return `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
-
-function createMediaRecorder(stream, mimeType) {
-  try {
-    return new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 64_000 });
-  } catch {
-    try {
-      return new MediaRecorder(stream, { mimeType });
-    } catch {
-      return new MediaRecorder(stream);
-    }
-  }
-}
-
 async function handleGenerate(event) {
   event.preventDefault();
   updateMessageCounter();
 
   if (!dom.blessingForm.reportValidity()) return;
-  if (state.recorder?.state === "recording") {
-    showToast("请先结束录音", true);
-    return;
-  }
-
   dom.storageWarning.hidden = true;
   dom.storageWarning.textContent = "";
   dom.generateButton.disabled = true;
@@ -419,7 +218,7 @@ async function handleGenerate(event) {
   const serialized = JSON.stringify(record);
 
   if (new Blob([serialized]).size >= MAX_API_RECORD_BYTES) {
-    showGenerateWarning("祝福数据接近 5 MB，请删除部分图片或录音后重试");
+    showGenerateWarning("祝福数据接近 5 MB，请删除部分图片后重试");
     restoreGenerateButton();
     return;
   }
@@ -482,7 +281,6 @@ function buildRecord() {
     message: dom.message.value.trim(),
     email: dom.email.value.trim(),
     images: state.images.map((image) => ({ ...image })),
-    audio: state.audio ? { ...state.audio } : null,
   };
 }
 

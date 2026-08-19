@@ -72,7 +72,6 @@ async function init() {
   buildLetterReveal("Happy Birthday");
   bindEvents();
   createFloatingDecorations();
-  setupAudio(state.record.audio);
   setupObserver();
   restoreLikedState();
 
@@ -87,7 +86,7 @@ function cacheDom() {
     "enterButton", "storyView", "storyScroller", "progressBar", "screenDots", "birthdayDate",
     "heroTitle", "heroSubtitle", "heroRecipient", "storyImage1", "storyImage2", "storyImage3",
     "finalMessage", "finalSender", "likeButton", "likeCount", "replayButton", "floatingLayer",
-    "heartBurst", "audioDock", "audioToggle", "audioTime", "blessingAudio",
+    "heartBurst",
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -170,12 +169,6 @@ function bindEvents() {
   });
   dom.likeButton.addEventListener("click", handleLike);
   dom.replayButton.addEventListener("click", replayStory);
-  dom.audioToggle.addEventListener("click", toggleAudio);
-  dom.blessingAudio.addEventListener("play", syncAudioState);
-  dom.blessingAudio.addEventListener("pause", syncAudioState);
-  dom.blessingAudio.addEventListener("ended", syncAudioState);
-  dom.blessingAudio.addEventListener("timeupdate", updateAudioTime);
-  dom.blessingAudio.addEventListener("loadedmetadata", updateAudioTime);
 }
 
 function enterStory() {
@@ -319,42 +312,6 @@ function celebrate(intensity = 1) {
       colors: palette,
     }), 250);
   }
-}
-
-function setupAudio(audio) {
-  if (!audio?.dataUrl || typeof audio.dataUrl !== "string" || !audio.dataUrl.startsWith("data:audio/")) return;
-  dom.blessingAudio.src = audio.dataUrl;
-  dom.audioDock.hidden = false;
-  if (Number.isFinite(Number(audio.durationMs))) {
-    dom.audioTime.textContent = `00:00 / ${formatTime(Number(audio.durationMs) / 1000)}`;
-  }
-}
-
-async function toggleAudio() {
-  try {
-    if (dom.blessingAudio.paused) await dom.blessingAudio.play();
-    else dom.blessingAudio.pause();
-  } catch (error) {
-    console.warn("音频播放失败。", error);
-  }
-}
-
-function syncAudioState() {
-  const playing = !dom.blessingAudio.paused && !dom.blessingAudio.ended;
-  dom.audioDock.classList.toggle("is-playing", playing);
-  dom.audioToggle.setAttribute("aria-label", playing ? "暂停语音留言" : "播放语音留言");
-  updateAudioTime();
-}
-
-function updateAudioTime() {
-  const current = Number.isFinite(dom.blessingAudio.currentTime) ? dom.blessingAudio.currentTime : 0;
-  const duration = Number.isFinite(dom.blessingAudio.duration) ? dom.blessingAudio.duration : (state.record?.audio?.durationMs || 0) / 1000;
-  dom.audioTime.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
-}
-
-function formatTime(seconds) {
-  const safe = Math.max(0, Math.floor(seconds || 0));
-  return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
 }
 
 function formatBirthday(value) {

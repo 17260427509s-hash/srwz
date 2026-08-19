@@ -577,56 +577,6 @@ a:focus-visible {
 
 .screen-dots span.is-active { background: var(--accent); transform: scale(1.5); }
 
-.audio-dock {
-  position: fixed;
-  z-index: 22;
-  left: max(18px, env(safe-area-inset-left));
-  bottom: max(16px, env(safe-area-inset-bottom));
-  min-width: 260px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 15px 10px 10px;
-  border: 1px solid rgba(255,255,255,.8);
-  border-radius: 999px;
-  background: rgba(255,253,250,.88);
-  box-shadow: 0 12px 34px rgba(68, 42, 40, .16);
-  backdrop-filter: blur(16px);
-}
-
-.audio-dock > button {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: white;
-  border: 0;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-}
-
-.audio-dock svg { width: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.audio-dock .play-icon { fill: currentColor; stroke: none; }
-.audio-dock .pause-icon { display: none; }
-.audio-dock.is-playing .play-icon { display: none; }
-.audio-dock.is-playing .pause-icon { display: block; }
-
-.audio-meta { display: grid; gap: 2px; }
-.audio-meta strong { font-size: 13px; }
-.audio-meta span { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
-
-.audio-wave { display: flex; align-items: center; gap: 3px; height: 25px; }
-.audio-wave i { width: 2px; height: 8px; border-radius: 2px; background: var(--accent); }
-.audio-wave i:nth-child(2), .audio-wave i:nth-child(4) { height: 17px; }
-.audio-wave i:nth-child(3) { height: 23px; }
-.audio-dock.is-playing .audio-wave i { animation: wave 700ms ease-in-out infinite alternate; }
-.audio-dock.is-playing .audio-wave i:nth-child(2) { animation-delay: -240ms; }
-.audio-dock.is-playing .audio-wave i:nth-child(3) { animation-delay: -420ms; }
-.audio-dock.is-playing .audio-wave i:nth-child(4) { animation-delay: -120ms; }
-
 .floating-layer { position: fixed; inset: 0; z-index: 15; overflow: hidden; pointer-events: none; }
 
 .float-item {
@@ -648,7 +598,6 @@ a:focus-visible {
 @keyframes glowBreath { 50% { transform: scale(1.13); opacity: .68; } }
 @keyframes arrowBounce { 50% { transform: translate(-50%, 7px); } }
 @keyframes likePop { 45% { transform: scale(1.18) rotate(-2deg); } 75% { transform: scale(.94); } }
-@keyframes wave { to { transform: scaleY(.36); opacity: .55; } }
 @keyframes floatUp { 0% { transform: translate3d(0,0,0) rotate(0); opacity: 0; } 10% { opacity: .85; } 88% { opacity: .65; } 100% { transform: translate3d(var(--drift), -120vh, 0) rotate(280deg); opacity: 0; } }
 @keyframes burstHeart { 0% { opacity: 0; transform: translate(-50%, -20%) scale(.2); } 16% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-20% - var(--y))) rotate(var(--r)) scale(1.15); } }
 
@@ -670,8 +619,6 @@ a:focus-visible {
   .emoji-accent { margin-bottom: 7px; font-size: 39px; }
   .scribble { width: 66%; margin: 14px auto 0; }
   .screen-dots { right: 10px; }
-  .audio-dock { left: 50%; bottom: max(13px, env(safe-area-inset-bottom)); min-width: min(280px, calc(100% - 40px)); transform: translateX(-50%); }
-  .story-view:has(.audio-dock:not([hidden])) .next-button { bottom: 82px; }
   .final-content h2 { font-size: 42px; }
   .letter-paper { max-height: 47vh; padding: 38px 25px 30px; }
   .letter-paper > p { font-size: 15px; line-height: 1.85; }
