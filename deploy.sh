@@ -19,7 +19,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "[1/7] 安装系统依赖..."
 apt-get update
-apt-get install -y --no-install-recommends ca-certificates curl gnupg git nginx build-essential
+apt-get install -y --no-install-recommends ca-certificates curl gnupg git nginx build-essential python3
 
 if ! command -v node >/dev/null 2>&1 || [[ "$(node -p 'process.versions.node.split(`.`)[0]' 2>/dev/null || echo 0)" -lt 20 ]]; then
   echo "[2/7] 安装 Node.js 20..."
@@ -46,6 +46,8 @@ fi
 echo "[4/7] 安装生产依赖..."
 cd "${APP_DIR}"
 npm ci --omit=dev --no-audit --no-fund
+# 部分轻量服务器 CPU 与 npm 的预编译 SQLite 二进制不兼容；在目标机重新编译可避免 SIGSEGV。
+npm rebuild better-sqlite3 --build-from-source
 chown -R root:root "${APP_DIR}"
 chmod -R a+rX "${APP_DIR}"
 install -d -o www-data -g www-data -m 0750 "${DATA_DIR}"
