@@ -12,6 +12,7 @@ const PORT = readPort(process.env.PORT, 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_STORED_BYTES = 5 * 1024 * 1024;
 const ID_PATTERN = /^[A-Za-z0-9_-]{12}$/;
+const TEMPLATE_IDS = new Set(["birthday-party", "bouquet", "cute-animals"]);
 
 const THEMES = {
   cherry: { key: "cherry", label: "樱桃粉", color: "#ef5b78", softColor: "#fde8ec" },
@@ -40,6 +41,7 @@ database.exec(`
     theme_json TEXT NOT NULL,
     message TEXT NOT NULL,
     email TEXT NOT NULL DEFAULT '',
+    template_id TEXT,
     images_json TEXT NOT NULL DEFAULT '[]',
     audio_json TEXT,
     created_at TEXT NOT NULL,
@@ -48,19 +50,25 @@ database.exec(`
   CREATE INDEX IF NOT EXISTS idx_blessings_created_at ON blessings(created_at);
 `);
 
+// 为旧版 SQLite 数据库补充模板字段，保留已经生成的祝福记录。
+const blessingColumns = database.pragma("table_info(blessings)");
+if (!blessingColumns.some((column) => column.name === "template_id")) {
+  database.exec("ALTER TABLE blessings ADD COLUMN template_id TEXT");
+}
+
 const insertBlessing = database.prepare(`
   INSERT INTO blessings (
     id, recipient_name, birthday, sender_name, theme_json,
-    message, email, images_json, audio_json, created_at, likes
+    message, email, template_id, images_json, audio_json, created_at, likes
   ) VALUES (
     @id, @recipientName, @birthday, @senderName, @themeJson,
-    @message, @email, @imagesJson, @audioJson, @createdAt, 0
+    @message, @email, @templateId, @imagesJson, @audioJson, @createdAt, 0
   )
 `);
 
 const findBlessing = database.prepare(`
   SELECT id, recipient_name, birthday, sender_name, theme_json,
-         message, email, images_json, audio_json, created_at, likes
+         message, email, template_id, images_json, audio_json, created_at, likes
   FROM blessings
   WHERE id = ?
 `);
@@ -99,6 +107,7 @@ app.post(
         themeJson: JSON.stringify(blessing.theme),
         message: blessing.message,
         email: blessing.email,
+        templateId: blessing.templateId,
         imagesJson: JSON.stringify(blessing.images),
         audioJson: blessing.audio ? JSON.stringify(blessing.audio) : null,
         createdAt,
@@ -133,6 +142,7 @@ app.get("/api/blessings/:id", (req, res, next) => {
       theme: JSON.parse(row.theme_json),
       message: row.message,
       email: row.email,
+      templateId: row.template_id || null,
       images: JSON.parse(row.images_json),
       audio: row.audio_json ? JSON.parse(row.audio_json) : null,
       createdAt: row.created_at,
@@ -197,8 +207,17 @@ function validateBlessing(input) {
   if (!THEMES[themeKey]) throw new ValidationError("请选择有效的主题色");
 
   const images = validateImages(input.images);
+  const templateId = validateTemplateId(input.templateId);
   const audio = validateAudio(input.audio);
-  return { recipientName, birthday, senderName, theme: THEMES[themeKey], message, email, images, audio };
+  return { recipientName, birthday, senderName, theme: THEMES[themeKey], message, email, templateId, images, audio };
+}
+
+function validateTemplateId(templateId) {
+  if (templateId == null || templateId === "") return null;
+  if (typeof templateId !== "string" || !TEMPLATE_IDS.has(templateId)) {
+    throw new ValidationError("请选择有效的预制插画模板");
+  }
+  return templateId;
 }
 
 function validateImages(images) {

@@ -210,6 +210,7 @@ a:focus-visible {
 
 .paper-panel {
   position: relative;
+  min-width: 0;
   padding: clamp(32px, 4vw, 58px);
   border-radius: 18px 18px 25px 18px;
   background:
@@ -401,6 +402,107 @@ a:focus-visible {
 .theme-option.is-selected > span:last-child {
   color: var(--swatch);
   font-weight: 700;
+}
+
+.template-fieldset {
+  min-width: 0;
+  margin: 0 0 26px;
+  padding: 0;
+  border: 0;
+}
+
+.template-fieldset legend {
+  margin-bottom: 4px;
+}
+
+.template-fieldset legend em,
+.template-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.template-hint {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.template-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.template-option {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 9px 9px 10px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid #ded4d0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.template-option:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, #ded4d0);
+  transform: translateY(-2px);
+}
+
+.template-option::after {
+  content: "✓";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 23px;
+  height: 23px;
+  display: none;
+  place-items: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 3px 9px rgba(66, 44, 42, 0.18);
+}
+
+.template-option.is-selected {
+  color: var(--accent-deep);
+  font-weight: 700;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.template-option.is-selected::after {
+  display: grid;
+}
+
+.template-preview {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 2px;
+  padding: 8px 5px;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.95) 0 3px, transparent 4px),
+    color-mix(in srgb, var(--accent-soft) 52%, white);
+}
+
+.template-preview img {
+  width: 100%;
+  height: 58px;
+  display: block;
+  object-fit: contain;
 }
 
 .blessing-field {
@@ -1005,6 +1107,15 @@ a:focus-visible {
   background: var(--accent-deep);
 }
 
+.asset-credit {
+  width: min(1180px, calc(100% - 32px));
+  margin: 18px auto 26px;
+  color: #8f8581;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+
 @keyframes viewIn {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1132,6 +1243,20 @@ a:focus-visible {
   .theme-picker {
     grid-template-columns: repeat(4, 1fr);
     row-gap: 18px;
+  }
+
+  .template-picker {
+    display: flex;
+    gap: 10px;
+    padding: 2px 3px 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .template-option {
+    flex: 0 0 148px;
+    scroll-snap-align: start;
   }
 
   .swatch {

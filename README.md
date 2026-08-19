@@ -44,7 +44,7 @@ $env:PORT=8080; node server.js
 
 ### `POST /api/blessings`
 
-接收页面一的祝福记录，服务器校验数据、生成 12 位随机 ID 并写入 SQLite。成功返回：
+接收页面一的祝福记录，服务器校验数据、生成 12 位随机 ID 并写入 SQLite。可选的 `templateId` 支持 `birthday-party`、`bouquet`、`cute-animals`，不选择时传 `null`。成功返回：
 
 ```json
 { "id": "Abc123_xYz90" }
@@ -55,6 +55,8 @@ $env:PORT=8080; node server.js
 返回对应的完整祝福记录；不存在时返回 HTTP 404。
 
 当前第一版会把压缩后的图片以 Data URL 直接保存到 SQLite，暂不提供语音留言入口。服务端仍保留音频字段兼容旧记录；JSON 请求体限制为 6 MB，清洗后的单条记录限制为 5 MB，单张图片不超过约 2.5 MB。这适合个人项目和小流量使用；如果以后访问量或图片数量增加，建议把图片迁移到 S3、Cloudflare R2、阿里云 OSS 等对象存储，SQLite 中只保存文件 URL。
+
+详情页图片按“用户上传照片 → 用户选择的预制模板 → 经典默认图”逐个位置降级。预制 SVG 全部保存在 `assets/templates/`，来自 OpenMoji，遵循 CC BY-SA 4.0 协议；素材清单和完整许可证也随项目一起保存。
 
 ## 数据库与备份
 

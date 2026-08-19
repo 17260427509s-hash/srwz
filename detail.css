@@ -426,6 +426,15 @@ a:focus-visible {
 
 .photo-frame img { width: 100%; height: 100%; display: block; object-fit: cover; }
 
+.photo-frame img.is-template-image {
+  padding: clamp(24px, 4vw, 54px);
+  object-fit: contain;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(var(--accent-rgb), .12) 0 4px, transparent 5px),
+    radial-gradient(circle at 84% 80%, rgba(var(--accent-rgb), .1) 0 5px, transparent 6px),
+    color-mix(in srgb, var(--accent-soft) 28%, #fffdf8);
+}
+
 .photo-tape {
   position: absolute;
   z-index: 2;
@@ -541,6 +550,14 @@ a:focus-visible {
 .like-button.is-popping { animation: likePop 560ms cubic-bezier(.2,.9,.25,1.35); }
 
 .replay-button { margin-top: 11px; padding: 7px 14px; color: var(--muted); border: 0; border-bottom: 1px dashed currentColor; background: transparent; cursor: pointer; }
+
+.asset-credit--detail {
+  margin: 13px 0 0;
+  color: rgba(92, 76, 74, 0.66);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
 
 .final-sprig { position: absolute; z-index: -1; width: min(300px, 35vw); opacity: .38; }
 .final-sprig--top { top: -60px; left: -50px; transform: rotate(-18deg); }

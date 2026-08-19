@@ -31,6 +31,7 @@ const BLESSINGS = [
 
 const state = {
   theme: THEMES.cherry,
+  templateId: null,
   images: [],
   currentId: null,
   toastTimer: null,
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function cacheDom() {
   [
     "formView", "resultView", "blessingForm", "recipientName", "birthday", "senderName",
-    "message", "messageCounter", "email", "themePicker", "shuffleMessage", "photoInput",
+    "message", "messageCounter", "email", "themePicker", "templatePicker", "shuffleMessage", "photoInput",
     "photoPreviews", "photoCount", "photoError", "storageWarning", "generateButton", "cardTemplate",
     "cardRecipient", "cardDate", "cardMessage", "cardSender", "generatedCardImage",
     "cardImageButton", "shareLink", "copyLinkButton", "downloadCardButton", "backToEdit",
@@ -59,6 +60,7 @@ function cacheDom() {
 
 function bindEvents() {
   dom.themePicker.addEventListener("click", handleThemeChange);
+  dom.templatePicker.addEventListener("click", handleTemplateChange);
   dom.shuffleMessage.addEventListener("click", shuffleBlessing);
   dom.message.addEventListener("input", updateMessageCounter);
   dom.photoInput.addEventListener("change", handlePhotoSelection);
@@ -74,6 +76,18 @@ function bindEvents() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dom.imageModal.hidden) closeImageModal();
+  });
+}
+
+function handleTemplateChange(event) {
+  const button = event.target.closest(".template-option");
+  if (!button) return;
+
+  state.templateId = button.dataset.template || null;
+  dom.templatePicker.querySelectorAll(".template-option").forEach((option) => {
+    const selected = option === button;
+    option.classList.toggle("is-selected", selected);
+    option.setAttribute("aria-pressed", String(selected));
   });
 }
 
@@ -280,6 +294,7 @@ function buildRecord() {
     theme: { ...state.theme },
     message: dom.message.value.trim(),
     email: dom.email.value.trim(),
+    templateId: state.templateId,
     images: state.images.map((image) => ({ ...image })),
   };
 }

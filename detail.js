@@ -6,6 +6,24 @@ const DEFAULT_IMAGES = [
   "assets/default-toast.webp",
 ];
 
+const TEMPLATE_IMAGES = {
+  "birthday-party": [
+    "assets/templates/birthday-party/cake.svg",
+    "assets/templates/birthday-party/balloon.svg",
+    "assets/templates/birthday-party/party-popper.svg",
+  ],
+  bouquet: [
+    "assets/templates/bouquet/bouquet.svg",
+    "assets/templates/bouquet/cherry-blossom.svg",
+    "assets/templates/bouquet/sunflower.svg",
+  ],
+  "cute-animals": [
+    "assets/templates/cute-animals/cat.svg",
+    "assets/templates/cute-animals/rabbit.svg",
+    "assets/templates/cute-animals/bear.svg",
+  ],
+};
+
 const state = {
   id: "",
   record: null,
@@ -127,12 +145,22 @@ function populateStory(record) {
   const uploadedImages = Array.isArray(record.images)
     ? record.images.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.startsWith("data:image/"))
     : [];
-  const images = [0, 1, 2].map((index) => uploadedImages[index]?.dataUrl || DEFAULT_IMAGES[index]);
+  const templateImages = TEMPLATE_IMAGES[record.templateId] || [];
   [dom.storyImage1, dom.storyImage2, dom.storyImage3].forEach((image, index) => {
-    image.src = images[index];
-    image.addEventListener("error", () => {
-      if (!image.src.endsWith(DEFAULT_IMAGES[index])) image.src = DEFAULT_IMAGES[index];
-    }, { once: true });
+    const candidates = [uploadedImages[index]?.dataUrl, templateImages[index], DEFAULT_IMAGES[index]]
+      .filter((value, candidateIndex, values) => typeof value === "string" && value && values.indexOf(value) === candidateIndex);
+    let candidateIndex = 0;
+    const applyCandidate = () => {
+      image.classList.toggle("is-template-image", candidates[candidateIndex] === templateImages[index]);
+      image.src = candidates[candidateIndex];
+    };
+    const useNextCandidate = () => {
+      candidateIndex += 1;
+      if (candidateIndex < candidates.length) applyCandidate();
+      else image.removeEventListener("error", useNextCandidate);
+    };
+    image.addEventListener("error", useNextCandidate);
+    applyCandidate();
   });
 
   const likes = Number.isFinite(Number(record.likes)) ? Math.max(0, Number(record.likes)) : 0;
