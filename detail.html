@@ -6,9 +6,10 @@
     <meta name="theme-color" content="#fde8ec" />
     <meta name="description" content="打开一份为你准备的专属生日祝福。" />
     <title>一份专属生日祝福</title>
-    <link rel="stylesheet" href="detail.css?v=4" />
+    <link rel="icon" href="assets/templates/birthday-party/cake.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="detail.css?v=5" />
     <script defer src="assets/vendor/canvas-confetti-1.9.3.min.js?v=1"></script>
-    <script defer src="detail.js?v=3"></script>
+    <script defer src="detail.js?v=4"></script>
   </head>
   <body>
     <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
@@ -43,6 +44,48 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
         </button>
         <p class="cover-note">点击后开启这场生日放映</p>
+      </section>
+
+      <section id="introView" class="cinematic-intro" aria-label="生日祝福片头" hidden>
+        <div class="intro-ambient" aria-hidden="true">
+          <span>✦</span><span>♡</span><span>·</span><span>✦</span><span>♡</span><span>·</span>
+          <span>✦</span><span>♡</span><span>·</span><span>✦</span><span>♡</span><span>·</span>
+        </div>
+
+        <button id="skipIntroButton" class="skip-intro-button" type="button">跳过片头</button>
+        <div class="intro-progress" aria-hidden="true"><span></span></div>
+        <p id="introAnnouncement" class="sr-only" aria-live="polite"></p>
+
+        <div class="intro-stage">
+          <div id="introGreeting" class="intro-scene intro-scene--greeting" aria-hidden="true">
+            <p>HI</p>
+            <h2 id="introRecipient"></h2>
+          </div>
+
+          <div id="introToday" class="intro-scene intro-scene--today" aria-hidden="true">
+            <p>今天，属于你</p>
+            <span>这一刻，请收下所有偏爱</span>
+          </div>
+
+          <div id="introCountdown" class="intro-scene intro-scene--countdown" aria-hidden="true">
+            <span>准备好了吗</span>
+            <strong id="countdownNumber">3</strong>
+          </div>
+
+          <div id="introCake" class="intro-scene intro-scene--cake" aria-hidden="true">
+            <div class="cake-light" aria-hidden="true"></div>
+            <div class="intro-cake-wrap">
+              <img src="assets/templates/birthday-party/cake.svg" alt="点亮蜡烛的生日蛋糕" />
+              <span class="candle-glow" aria-hidden="true"></span>
+            </div>
+            <p>愿望正在发光</p>
+          </div>
+
+          <div id="introFinale" class="intro-scene intro-scene--finale" aria-hidden="true">
+            <h2><span>Happy</span><span>Birthday</span></h2>
+            <p>送给 <strong id="introFinalRecipient"></strong></p>
+          </div>
+        </div>
       </section>
 
       <section id="storyView" class="story-view" hidden>

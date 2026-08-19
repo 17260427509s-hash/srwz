@@ -30,6 +30,8 @@ const state = {
   activeScreen: 0,
   finalCelebrated: false,
   liked: false,
+  introPlaying: false,
+  introTimers: [],
 };
 
 const dom = {};
@@ -101,7 +103,9 @@ async function init() {
 function cacheDom() {
   [
     "loadingView", "errorView", "errorTitle", "errorMessage", "coverView", "coverRecipient",
-    "enterButton", "storyView", "storyScroller", "progressBar", "screenDots", "birthdayDate",
+    "enterButton", "introView", "skipIntroButton", "introAnnouncement", "introRecipient",
+    "introGreeting", "introToday", "introCountdown", "countdownNumber", "introCake",
+    "introFinale", "introFinalRecipient", "storyView", "storyScroller", "progressBar", "screenDots", "birthdayDate",
     "heroTitle", "heroSubtitle", "heroRecipient", "storyImage1", "storyImage2", "storyImage3",
     "finalMessage", "finalSender", "likeButton", "likeCount", "replayButton", "floatingLayer",
     "heartBurst",
@@ -117,8 +121,10 @@ function isValidRecord(record) {
 }
 
 function showError(title, message) {
+  clearIntroTimers();
   dom.loadingView.hidden = true;
   dom.coverView.hidden = true;
+  dom.introView.hidden = true;
   dom.storyView.hidden = true;
   dom.errorTitle.textContent = title;
   dom.errorMessage.textContent = message;
@@ -137,6 +143,8 @@ function applyTheme(theme) {
 
 function populateStory(record) {
   dom.coverRecipient.textContent = `${record.recipientName}，准备好拆开惊喜了吗？`;
+  dom.introRecipient.textContent = record.recipientName;
+  dom.introFinalRecipient.textContent = record.recipientName;
   dom.heroRecipient.textContent = record.recipientName;
   dom.birthdayDate.textContent = formatBirthday(record.birthday);
   dom.finalMessage.textContent = record.message;
@@ -189,6 +197,8 @@ function buildLetterReveal(text) {
 
 function bindEvents() {
   dom.enterButton.addEventListener("click", enterStory);
+  dom.skipIntroButton.addEventListener("click", skipCinematicIntro);
+  window.addEventListener("pagehide", clearIntroTimers);
   dom.storyScroller.querySelectorAll(".next-button").forEach((button) => {
     button.addEventListener("click", () => {
       const current = button.closest(".story-screen");
@@ -202,16 +212,101 @@ function bindEvents() {
 function enterStory() {
   dom.enterButton.disabled = true;
   dom.coverView.classList.add("is-leaving");
-  celebrate(0.9);
   window.setTimeout(() => {
     dom.coverView.hidden = true;
+    if (prefersReducedMotion()) {
+      revealStory();
+      return;
+    }
+    startCinematicIntro();
+  }, prefersReducedMotion() ? 0 : 560);
+}
+
+// 约 8.75 秒的电影式片头：问候 → 专属文案 → 倒计时 → 蛋糕 → 标题。
+function startCinematicIntro() {
+  clearIntroTimers();
+  state.introPlaying = true;
+  dom.introView.hidden = false;
+  dom.introView.classList.remove("is-leaving");
+  resetIntroScenes();
+
+  window.requestAnimationFrame(() => {
+    dom.introView.classList.add("is-playing");
+    activateIntroScene(dom.introGreeting, `HI，${state.record.recipientName}`);
+    dom.skipIntroButton.focus({ preventScroll: true });
+  });
+
+  scheduleIntro(() => activateIntroScene(dom.introToday, "今天，属于你"), 1500);
+  scheduleIntro(() => showCountdownNumber("3"), 2900);
+  scheduleIntro(() => showCountdownNumber("2"), 3650);
+  scheduleIntro(() => showCountdownNumber("1"), 4400);
+  scheduleIntro(() => activateIntroScene(dom.introCake, "蛋糕点亮，愿望正在发光"), 5200);
+  scheduleIntro(() => {
+    activateIntroScene(dom.introFinale, `Happy Birthday，送给${state.record.recipientName}`);
+    celebrate(0.8);
+  }, 6750);
+  scheduleIntro(() => revealStory(), 8750);
+}
+
+function scheduleIntro(callback, delay) {
+  state.introTimers.push(window.setTimeout(callback, delay));
+}
+
+function clearIntroTimers() {
+  state.introTimers.forEach((timerId) => window.clearTimeout(timerId));
+  state.introTimers = [];
+}
+
+function resetIntroScenes() {
+  dom.introView.classList.remove("is-playing");
+  dom.introView.querySelectorAll(".intro-scene").forEach((scene) => {
+    scene.classList.remove("is-active");
+    scene.setAttribute("aria-hidden", "true");
+  });
+  dom.countdownNumber.textContent = "3";
+  dom.countdownNumber.classList.remove("is-changing");
+  dom.introAnnouncement.textContent = "";
+}
+
+function activateIntroScene(scene, announcement) {
+  dom.introView.querySelectorAll(".intro-scene").forEach((item) => {
+    const active = item === scene;
+    item.classList.toggle("is-active", active);
+    item.setAttribute("aria-hidden", String(!active));
+  });
+  dom.introAnnouncement.textContent = announcement;
+}
+
+function showCountdownNumber(number) {
+  activateIntroScene(dom.introCountdown, `倒计时，${number}`);
+  dom.countdownNumber.textContent = number;
+  dom.countdownNumber.classList.remove("is-changing");
+  void dom.countdownNumber.offsetWidth;
+  dom.countdownNumber.classList.add("is-changing");
+}
+
+function skipCinematicIntro() {
+  if (!state.introPlaying) return;
+  revealStory(true);
+}
+
+function revealStory(celebrateOnEnter = false) {
+  clearIntroTimers();
+  state.introPlaying = false;
+  dom.introView.classList.remove("is-playing");
+  dom.introView.classList.add("is-leaving");
+
+  window.setTimeout(() => {
+    dom.introView.hidden = true;
+    dom.introView.classList.remove("is-leaving");
     dom.storyView.hidden = false;
     document.body.classList.add("has-entered");
     dom.storyScroller.focus({ preventScroll: true });
     dom.storyScroller.scrollTo({ top: 0 });
     const first = dom.storyScroller.querySelector(".story-screen");
     first?.classList.add("is-active");
-  }, prefersReducedMotion() ? 0 : 560);
+    if (celebrateOnEnter) celebrate(0.65);
+  }, prefersReducedMotion() ? 0 : 360);
 }
 
 function setupObserver() {
