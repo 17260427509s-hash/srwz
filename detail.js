@@ -24,6 +24,9 @@ const TEMPLATE_IMAGES = {
   ],
 };
 
+const MUSIC_MUTED_KEY = "birthdayBlessing:musicMuted";
+const DEFAULT_MUSIC_VOLUME = 0.55;
+
 const state = {
   id: "",
   record: null,
@@ -32,6 +35,9 @@ const state = {
   liked: false,
   introPlaying: false,
   introTimers: [],
+  musicAvailable: true,
+  musicMuted: false,
+  musicPlaying: false,
 };
 
 const dom = {};
@@ -90,6 +96,7 @@ async function init() {
   applyTheme(state.record.theme);
   populateStory(state.record);
   buildLetterReveal("Happy Birthday");
+  setupBackgroundMusic();
   bindEvents();
   createFloatingDecorations();
   setupObserver();
@@ -103,7 +110,7 @@ async function init() {
 function cacheDom() {
   [
     "loadingView", "errorView", "errorTitle", "errorMessage", "coverView", "coverRecipient",
-    "enterButton", "introView", "skipIntroButton", "introAnnouncement", "introRecipient",
+    "enterButton", "backgroundMusic", "musicToggle", "musicStatus", "introView", "skipIntroButton", "introAnnouncement", "introRecipient",
     "introGreeting", "introToday", "introCountdown", "countdownNumber", "introCake",
     "introFinale", "introFinalRecipient", "storyView", "storyScroller", "progressBar", "screenDots", "birthdayDate",
     "heroTitle", "heroSubtitle", "heroRecipient", "storyImage1", "storyImage2", "storyImage3",
@@ -146,6 +153,7 @@ function populateStory(record) {
   dom.introRecipient.textContent = record.recipientName;
   dom.introFinalRecipient.textContent = record.recipientName;
   dom.heroRecipient.textContent = record.recipientName;
+  applyRecipientLengthClasses(record.recipientName);
   dom.birthdayDate.textContent = formatBirthday(record.birthday);
   dom.finalMessage.textContent = record.message;
   dom.finalSender.textContent = record.senderName;
@@ -176,6 +184,17 @@ function populateStory(record) {
   updateLikeCount();
 }
 
+// 长昵称在手机端采用分级字号，避免片头、首屏署名被撑出视口。
+function applyRecipientLengthClasses(name) {
+  const length = Array.from(name.trim()).length;
+  const nameElements = [dom.coverRecipient, dom.introRecipient, dom.introFinalRecipient, dom.heroRecipient];
+
+  nameElements.forEach((element) => {
+    element.classList.toggle("is-long-name", length > 8);
+    element.classList.toggle("is-extra-long-name", length > 14);
+  });
+}
+
 function buildLetterReveal(text) {
   dom.heroTitle.textContent = "";
   let letterIndex = 0;
@@ -197,8 +216,10 @@ function buildLetterReveal(text) {
 
 function bindEvents() {
   dom.enterButton.addEventListener("click", enterStory);
+  dom.musicToggle.addEventListener("click", toggleBackgroundMusic);
   dom.skipIntroButton.addEventListener("click", skipCinematicIntro);
   window.addEventListener("pagehide", clearIntroTimers);
+  document.addEventListener("visibilitychange", handleMusicVisibilityChange);
   dom.storyScroller.querySelectorAll(".next-button").forEach((button) => {
     button.addEventListener("click", () => {
       const current = button.closest(".story-screen");
@@ -212,6 +233,8 @@ function bindEvents() {
 function enterStory() {
   dom.enterButton.disabled = true;
   dom.coverView.classList.add("is-leaving");
+  // 必须在用户点击事件内立即调用 play，才能通过微信、Safari 等浏览器的自动播放限制。
+  void startBackgroundMusic();
   window.setTimeout(() => {
     dom.coverView.hidden = true;
     if (prefersReducedMotion()) {
@@ -226,6 +249,8 @@ function enterStory() {
 function startCinematicIntro() {
   clearIntroTimers();
   state.introPlaying = true;
+  document.body.classList.add("is-intro-playing");
+  dom.musicToggle.hidden = !state.musicAvailable;
   dom.introView.hidden = false;
   dom.introView.classList.remove("is-leaving");
   resetIntroScenes();
@@ -293,6 +318,8 @@ function skipCinematicIntro() {
 function revealStory(celebrateOnEnter = false) {
   clearIntroTimers();
   state.introPlaying = false;
+  document.body.classList.remove("is-intro-playing");
+  dom.musicToggle.hidden = !state.musicAvailable;
   dom.introView.classList.remove("is-playing");
   dom.introView.classList.add("is-leaving");
 
@@ -307,6 +334,90 @@ function revealStory(celebrateOnEnter = false) {
     first?.classList.add("is-active");
     if (celebrateOnEnter) celebrate(0.65);
   }, prefersReducedMotion() ? 0 : 360);
+}
+
+function setupBackgroundMusic() {
+  dom.backgroundMusic.volume = DEFAULT_MUSIC_VOLUME;
+  try {
+    state.musicMuted = localStorage.getItem(MUSIC_MUTED_KEY) === "1";
+  } catch {
+    state.musicMuted = false;
+  }
+
+  dom.backgroundMusic.addEventListener("play", () => {
+    state.musicPlaying = true;
+    updateMusicControl();
+  });
+  dom.backgroundMusic.addEventListener("pause", () => {
+    state.musicPlaying = false;
+    updateMusicControl();
+  });
+  dom.backgroundMusic.addEventListener("error", () => {
+    state.musicAvailable = false;
+    state.musicPlaying = false;
+    dom.musicToggle.hidden = true;
+    announceMusicStatus("背景音乐暂时无法加载");
+  });
+  updateMusicControl();
+}
+
+async function startBackgroundMusic() {
+  if (!state.musicAvailable || state.musicMuted || !dom.backgroundMusic.paused) return;
+  try {
+    await dom.backgroundMusic.play();
+  } catch (error) {
+    state.musicPlaying = false;
+    updateMusicControl();
+    if (error?.name !== "AbortError") {
+      announceMusicStatus("点击右上角音乐按钮即可播放");
+    }
+  }
+}
+
+function toggleBackgroundMusic() {
+  if (!state.musicAvailable) return;
+  if (!dom.backgroundMusic.paused) {
+    state.musicMuted = true;
+    dom.backgroundMusic.pause();
+    persistMusicPreference();
+    announceMusicStatus("背景音乐已关闭");
+    return;
+  }
+
+  state.musicMuted = false;
+  persistMusicPreference();
+  announceMusicStatus("背景音乐已开启");
+  void startBackgroundMusic();
+}
+
+function updateMusicControl() {
+  const isPlaying = state.musicPlaying && !state.musicMuted;
+  dom.musicToggle.classList.toggle("is-playing", isPlaying);
+  dom.musicToggle.classList.toggle("is-muted", !isPlaying);
+  dom.musicToggle.setAttribute("aria-pressed", String(isPlaying));
+  const label = isPlaying ? "暂停背景音乐" : "播放背景音乐";
+  dom.musicToggle.setAttribute("aria-label", label);
+  dom.musicToggle.title = label;
+}
+
+function persistMusicPreference() {
+  try {
+    localStorage.setItem(MUSIC_MUTED_KEY, state.musicMuted ? "1" : "0");
+  } catch (error) {
+    console.warn("音乐开关状态无法保存到本地存储。", error);
+  }
+  updateMusicControl();
+}
+
+function announceMusicStatus(message) {
+  dom.musicStatus.textContent = "";
+  window.setTimeout(() => { dom.musicStatus.textContent = message; }, 10);
+}
+
+function handleMusicVisibilityChange() {
+  if (!document.hidden && !dom.musicToggle.hidden && !state.musicMuted) {
+    void startBackgroundMusic();
+  }
 }
 
 function setupObserver() {

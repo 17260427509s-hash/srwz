@@ -7,12 +7,31 @@
     <meta name="description" content="打开一份为你准备的专属生日祝福。" />
     <title>一份专属生日祝福</title>
     <link rel="icon" href="assets/templates/birthday-party/cake.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="detail.css?v=5" />
+    <link rel="stylesheet" href="detail.css?v=7" />
     <script defer src="assets/vendor/canvas-confetti-1.9.3.min.js?v=1"></script>
-    <script defer src="detail.js?v=4"></script>
+    <script defer src="detail.js?v=6"></script>
   </head>
   <body>
     <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
+
+    <audio id="backgroundMusic" preload="auto" loop playsinline>
+      <source src="assets/audio/birthday-ambient.wav?v=1" type="audio/wav" />
+    </audio>
+    <button
+      id="musicToggle"
+      class="music-toggle"
+      type="button"
+      aria-label="播放背景音乐"
+      aria-pressed="false"
+      title="播放背景音乐"
+      hidden
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="music-note-path" d="M9 18V6.5l10-2v10.7M9 10l10-2M6.7 21c1.5 0 2.8-.9 2.8-2s-1.3-2-2.8-2-2.7.9-2.7 2 1.2 2 2.7 2Zm10-3.8c1.5 0 2.8-.9 2.8-2s-1.3-2-2.8-2-2.7.9-2.7 2 1.2 2 2.7 2Z" />
+        <path class="music-muted-path" d="M4.5 4.5 20 20" />
+      </svg>
+      <span id="musicStatus" class="sr-only" aria-live="polite"></span>
+    </button>
 
     <main>
       <section id="loadingView" class="status-view">
