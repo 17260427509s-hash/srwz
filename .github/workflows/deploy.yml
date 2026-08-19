@@ -1,0 +1,40 @@
+name: Deploy birthday blessing
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure temporary SSH key
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SERVER_SSH_KEY" > "$HOME/.ssh/id_rsa"
+          chmod 600 "$HOME/.ssh/id_rsa"
+          ssh-keyscan -T 20 -H 43.129.207.14 >> "$HOME/.ssh/known_hosts"
+
+      - name: Deploy application
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=30 ubuntu@43.129.207.14 \
+            'curl -fsSL https://raw.githubusercontent.com/17260427509s-hash/srwz/main/deploy.sh | sudo bash'
+
+      - name: Verify public website
+        run: |
+          for attempt in {1..20}; do
+            if curl -fsS --max-time 10 http://43.129.207.14/ >/dev/null; then
+              echo "PUBLIC_SITE_OK"
+              exit 0
+            fi
+            sleep 3
+          done
+          curl -v --max-time 15 http://43.129.207.14/
+          exit 1
+
