@@ -933,6 +933,30 @@ a:focus-visible {
   letter-spacing: 0.08em;
 }
 
+.card-qr {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  z-index: 4;
+  width: 100px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(45, 37, 35, 0.12);
+  border-radius: 7px;
+  box-shadow: 0 4px 14px rgba(45, 37, 35, 0.1);
+}
+
+.card-qr canvas,
+.card-qr img {
+  width: 88px !important;
+  height: 88px !important;
+  display: block;
+}
+
 .image-modal {
   position: fixed;
   inset: 0;

@@ -49,7 +49,7 @@ function cacheDom() {
     "formView", "resultView", "blessingForm", "recipientName", "birthday", "senderName",
     "message", "messageCounter", "themePicker", "shuffleMessage", "photoInput",
     "photoPreviews", "photoCount", "photoError", "storageWarning", "generateButton", "cardTemplate",
-    "cardRecipient", "cardDate", "cardMessage", "cardSender", "generatedCardImage",
+    "cardRecipient", "cardDate", "cardMessage", "cardSender", "cardQrCode", "generatedCardImage",
     "cardImageButton", "shareLink", "copyLinkButton", "downloadCardButton", "backToEdit",
     "imageModal", "modalCardImage", "closeImageModal", "toast", "toastText",
   ].forEach((id) => {
@@ -224,7 +224,6 @@ async function handleGenerate(event) {
   }
 
   try {
-    await renderCardImage(record);
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 20_000);
     let response;
@@ -251,6 +250,7 @@ async function handleGenerate(event) {
     state.currentId = result.id;
     const shareUrl = new URL(`detail.html?id=${encodeURIComponent(state.currentId)}`, window.location.href).href;
     dom.shareLink.value = shareUrl;
+    await renderCardImage(record, shareUrl);
     dom.downloadCardButton.download = `${safeFileName(record.recipientName)}-生日贺卡.png`;
     dom.formView.hidden = true;
     dom.resultView.hidden = false;
@@ -285,9 +285,12 @@ function buildRecord() {
   };
 }
 
-async function renderCardImage(record) {
+async function renderCardImage(record, shareUrl) {
   if (typeof window.html2canvas !== "function") {
     throw new Error("html2canvas 未加载");
+  }
+  if (typeof window.QRCode !== "function") {
+    throw new Error("二维码生成库未加载");
   }
 
   dom.cardTemplate.style.setProperty("--card-accent", record.theme.color);
@@ -302,6 +305,7 @@ async function renderCardImage(record) {
   dom.cardDate.dateTime = record.birthday;
   dom.cardMessage.textContent = record.message;
   dom.cardSender.textContent = `— 来自${record.senderName}`;
+  await renderCardQrCode(shareUrl);
 
   if (document.fonts?.ready) await document.fonts.ready;
   await Promise.all(Array.from(dom.cardTemplate.querySelectorAll("img")).map(async (image) => {
@@ -329,6 +333,33 @@ async function renderCardImage(record) {
   dom.generatedCardImage.src = dataUrl;
   dom.modalCardImage.src = dataUrl;
   dom.downloadCardButton.href = dataUrl;
+}
+
+async function renderCardQrCode(shareUrl) {
+  dom.cardQrCode.replaceChildren();
+  new window.QRCode(dom.cardQrCode, {
+    text: shareUrl,
+    width: 88,
+    height: 88,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: window.QRCode.CorrectLevel.M,
+  });
+
+  const qrImage = dom.cardQrCode.querySelector("img");
+  if (qrImage && !qrImage.complete) {
+    await new Promise((resolve) => {
+      const timeoutId = window.setTimeout(resolve, 1500);
+      const finish = () => {
+        window.clearTimeout(timeoutId);
+        resolve();
+      };
+      qrImage.addEventListener("load", finish, { once: true });
+      qrImage.addEventListener("error", finish, { once: true });
+    });
+  }
+
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }
 
 function restoreGenerateButton() {
