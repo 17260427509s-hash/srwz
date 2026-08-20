@@ -11,6 +11,7 @@ const ROOT_DIR = __dirname;
 const PORT = readPort(process.env.PORT, 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_STORED_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGES = 7;
 const ID_PATTERN = /^[A-Za-z0-9_-]{12}$/;
 const TEMPLATE_IDS = new Set(["birthday-party", "bouquet", "cute-animals"]);
 
@@ -222,7 +223,9 @@ function validateTemplateId(templateId) {
 
 function validateImages(images) {
   if (images == null) return [];
-  if (!Array.isArray(images) || images.length > 3) throw new ValidationError("照片最多上传 3 张");
+  if (!Array.isArray(images) || images.length > MAX_IMAGES) {
+    throw new ValidationError(`照片最多上传 ${MAX_IMAGES} 张`);
+  }
   return images.map((image, index) => {
     if (!image || typeof image !== "object") throw new ValidationError(`第 ${index + 1} 张照片无效`);
     const name = optionalText(image.name, "照片名称", 255) || `photo-${index + 1}.jpg`;

@@ -2,7 +2,7 @@
 
 const MAX_API_RECORD_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-const MAX_IMAGES = 3;
+const MAX_IMAGES = 7;
 
 const THEMES = {
   cherry: { key: "cherry", label: "樱桃粉", color: "#ef5b78", softColor: "#fde8ec" },
@@ -31,7 +31,6 @@ const BLESSINGS = [
 
 const state = {
   theme: THEMES.cherry,
-  templateId: null,
   images: [],
   currentId: null,
   toastTimer: null,
@@ -48,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function cacheDom() {
   [
     "formView", "resultView", "blessingForm", "recipientName", "birthday", "senderName",
-    "message", "messageCounter", "email", "themePicker", "templatePicker", "shuffleMessage", "photoInput",
+    "message", "messageCounter", "themePicker", "shuffleMessage", "photoInput",
     "photoPreviews", "photoCount", "photoError", "storageWarning", "generateButton", "cardTemplate",
     "cardRecipient", "cardDate", "cardMessage", "cardSender", "generatedCardImage",
     "cardImageButton", "shareLink", "copyLinkButton", "downloadCardButton", "backToEdit",
@@ -60,7 +59,6 @@ function cacheDom() {
 
 function bindEvents() {
   dom.themePicker.addEventListener("click", handleThemeChange);
-  dom.templatePicker.addEventListener("click", handleTemplateChange);
   dom.shuffleMessage.addEventListener("click", shuffleBlessing);
   dom.message.addEventListener("input", updateMessageCounter);
   dom.photoInput.addEventListener("change", handlePhotoSelection);
@@ -76,18 +74,6 @@ function bindEvents() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dom.imageModal.hidden) closeImageModal();
-  });
-}
-
-function handleTemplateChange(event) {
-  const button = event.target.closest(".template-option");
-  if (!button) return;
-
-  state.templateId = button.dataset.template || null;
-  dom.templatePicker.querySelectorAll(".template-option").forEach((option) => {
-    const selected = option === button;
-    option.classList.toggle("is-selected", selected);
-    option.setAttribute("aria-pressed", String(selected));
   });
 }
 
@@ -129,7 +115,7 @@ async function handlePhotoSelection(event) {
   const availableSlots = MAX_IMAGES - state.images.length;
 
   if (!availableSlots) {
-    dom.photoError.textContent = "最多只能上传 3 张照片，请先删除已有照片。";
+    dom.photoError.textContent = `最多只能上传 ${MAX_IMAGES} 张照片，请先删除已有照片。`;
     event.target.value = "";
     return;
   }
@@ -207,7 +193,7 @@ function renderPhotoPreviews() {
     wrapper.append(img, button);
     dom.photoPreviews.append(wrapper);
   });
-  dom.photoCount.textContent = `${state.images.length} / 3`;
+  dom.photoCount.textContent = `${state.images.length} / ${MAX_IMAGES}`;
 }
 
 function handlePhotoRemoval(event) {
@@ -293,8 +279,8 @@ function buildRecord() {
     senderName: dom.senderName.value.trim(),
     theme: { ...state.theme },
     message: dom.message.value.trim(),
-    email: dom.email.value.trim(),
-    templateId: state.templateId,
+    email: "",
+    templateId: null,
     images: state.images.map((image) => ({ ...image })),
   };
 }

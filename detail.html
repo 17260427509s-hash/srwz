@@ -7,9 +7,9 @@
     <meta name="description" content="打开一份为你准备的专属生日祝福。" />
     <title>一份专属生日祝福</title>
     <link rel="icon" href="assets/templates/birthday-party/cake.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="detail.css?v=7" />
+    <link rel="stylesheet" href="detail.css?v=8" />
     <script defer src="assets/vendor/canvas-confetti-1.9.3.min.js?v=1"></script>
-    <script defer src="detail.js?v=6"></script>
+    <script defer src="detail.js?v=7"></script>
   </head>
   <body>
     <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
@@ -177,7 +177,75 @@
             </button>
           </section>
 
-          <section class="story-screen final-screen" data-screen="4" aria-labelledby="finalTitle">
+          <section class="story-screen photo-screen photo-screen--four" data-screen="4">
+            <div class="screen-content photo-layout photo-layout--reverse">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage4" alt="生日祝福照片四" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🎈</span>
+                <p>愿你想去的地方，<br />都乘风而至</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--five" data-screen="5">
+            <div class="screen-content photo-layout">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage5" alt="生日祝福照片五" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🍵</span>
+                <p>愿你被世界温柔以待，<br />像被捧在掌心</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--six" data-screen="6">
+            <div class="screen-content photo-layout photo-layout--reverse">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage6" alt="生日祝福照片六" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🧺</span>
+                <p>愿陪伴常在，<br />愿笑意常存</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen photo-screen photo-screen--seven" data-screen="7">
+            <div class="screen-content photo-layout">
+              <figure class="photo-frame">
+                <span class="photo-tape" aria-hidden="true"></span>
+                <img id="storyImage7" alt="生日祝福照片七" />
+              </figure>
+              <div class="photo-copy">
+                <span class="emoji-accent" aria-hidden="true">🌙</span>
+                <p>愿星光为你停留，<br />好运常伴身旁</p>
+                <span class="scribble" aria-hidden="true"></span>
+              </div>
+            </div>
+            <button class="next-button" type="button" aria-label="下一页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5" /></svg>
+            </button>
+          </section>
+
+          <section class="story-screen final-screen" data-screen="8" aria-labelledby="finalTitle">
             <img class="final-sprig final-sprig--top" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
             <img class="final-sprig final-sprig--bottom" src="assets/card-botanical-sprig.webp?v=2" alt="" aria-hidden="true" />
             <div class="screen-content final-content">
@@ -198,6 +266,7 @@
 
         <div id="screenDots" class="screen-dots" aria-hidden="true">
           <span class="is-active"></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
         </div>
 
       </section>

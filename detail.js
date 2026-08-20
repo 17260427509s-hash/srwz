@@ -1,9 +1,13 @@
 "use strict";
 
 const DEFAULT_IMAGES = [
-  "assets/default-cake.webp",
-  "assets/default-balloons.webp",
-  "assets/default-toast.webp",
+  "assets/story/story-01.webp",
+  "assets/story/story-02.webp",
+  "assets/story/story-03.webp",
+  "assets/story/story-04.webp",
+  "assets/story/story-05.webp",
+  "assets/story/story-06.webp",
+  "assets/story/story-07.webp",
 ];
 
 const TEMPLATE_IMAGES = {
@@ -114,6 +118,7 @@ function cacheDom() {
     "introGreeting", "introToday", "introCountdown", "countdownNumber", "introCake",
     "introFinale", "introFinalRecipient", "storyView", "storyScroller", "progressBar", "screenDots", "birthdayDate",
     "heroTitle", "heroSubtitle", "heroRecipient", "storyImage1", "storyImage2", "storyImage3",
+    "storyImage4", "storyImage5", "storyImage6", "storyImage7",
     "finalMessage", "finalSender", "likeButton", "likeCount", "replayButton", "floatingLayer",
     "heartBurst",
   ].forEach((id) => { dom[id] = document.getElementById(id); });
@@ -162,7 +167,10 @@ function populateStory(record) {
     ? record.images.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.startsWith("data:image/"))
     : [];
   const templateImages = TEMPLATE_IMAGES[record.templateId] || [];
-  [dom.storyImage1, dom.storyImage2, dom.storyImage3].forEach((image, index) => {
+  [
+    dom.storyImage1, dom.storyImage2, dom.storyImage3, dom.storyImage4,
+    dom.storyImage5, dom.storyImage6, dom.storyImage7,
+  ].forEach((image, index) => {
     const candidates = [uploadedImages[index]?.dataUrl, templateImages[index], DEFAULT_IMAGES[index]]
       .filter((value, candidateIndex, values) => typeof value === "string" && value && values.indexOf(value) === candidateIndex);
     let candidateIndex = 0;

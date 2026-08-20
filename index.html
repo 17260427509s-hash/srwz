@@ -9,12 +9,13 @@
     />
     <meta name="theme-color" content="#f8dfe3" />
     <title>生日放映室｜生成专属生日祝福</title>
-    <link rel="stylesheet" href="styles.css?v=6" />
+    <link rel="icon" href="assets/templates/birthday-party/cake.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css?v=8" />
     <script
       defer
       src="assets/vendor/html2canvas-1.4.1.min.js?v=1"
     ></script>
-    <script defer src="script.js?v=6"></script>
+    <script defer src="script.js?v=8"></script>
   </head>
   <body>
     <div class="ambient-dots" aria-hidden="true">
@@ -106,45 +107,6 @@
               </div>
             </fieldset>
 
-            <fieldset class="template-fieldset">
-              <legend>预制插画模板 <em>（选填）</em></legend>
-              <p class="template-hint">上传照片会优先展示；不选择模板时使用经典默认插画。</p>
-              <div id="templatePicker" class="template-picker">
-                <button class="template-option is-selected" type="button" data-template="" aria-pressed="true">
-                  <span class="template-preview">
-                    <img src="assets/default-cake.webp?v=1" alt="" />
-                    <img src="assets/default-balloons.webp?v=1" alt="" />
-                    <img src="assets/default-toast.webp?v=1" alt="" />
-                  </span>
-                  <span>不选择</span>
-                </button>
-                <button class="template-option" type="button" data-template="birthday-party" aria-pressed="false">
-                  <span class="template-preview">
-                    <img src="assets/templates/birthday-party/cake.svg?v=1" alt="" />
-                    <img src="assets/templates/birthday-party/balloon.svg?v=1" alt="" />
-                    <img src="assets/templates/birthday-party/party-popper.svg?v=1" alt="" />
-                  </span>
-                  <span>生日派对</span>
-                </button>
-                <button class="template-option" type="button" data-template="bouquet" aria-pressed="false">
-                  <span class="template-preview">
-                    <img src="assets/templates/bouquet/bouquet.svg?v=1" alt="" />
-                    <img src="assets/templates/bouquet/cherry-blossom.svg?v=1" alt="" />
-                    <img src="assets/templates/bouquet/sunflower.svg?v=1" alt="" />
-                  </span>
-                  <span>花束</span>
-                </button>
-                <button class="template-option" type="button" data-template="cute-animals" aria-pressed="false">
-                  <span class="template-preview">
-                    <img src="assets/templates/cute-animals/cat.svg?v=1" alt="" />
-                    <img src="assets/templates/cute-animals/rabbit.svg?v=1" alt="" />
-                    <img src="assets/templates/cute-animals/bear.svg?v=1" alt="" />
-                  </span>
-                  <span>可爱动物</span>
-                </button>
-              </div>
-            </fieldset>
-
             <div class="field blessing-field">
               <div class="field-heading">
                 <label for="message">祝福语 <b aria-hidden="true">*</b></label>
@@ -157,23 +119,11 @@
               <span id="messageCounter" class="char-counter">25 / 240</span>
             </div>
 
-            <label class="field">
-              <span>寿星邮箱 <em>（选填）</em></span>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                maxlength="254"
-                placeholder="仅保存到祝福记录中，不会自动发送邮件"
-                autocomplete="email"
-              />
-            </label>
-
             <div class="media-grid">
               <section class="media-field" aria-labelledby="photoLabel">
                 <div class="media-heading">
-                  <h2 id="photoLabel">照片 <em>（选填，最多 3 张）</em></h2>
-                  <span id="photoCount">0 / 3</span>
+                  <h2 id="photoLabel">照片 <em>（选填，最多 7 张）</em></h2>
+                  <span id="photoCount">0 / 7</span>
                 </div>
                 <input
                   id="photoInput"
