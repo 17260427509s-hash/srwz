@@ -162,6 +162,7 @@ function populateStory(record) {
   dom.birthdayDate.textContent = formatBirthday(record.birthday);
   dom.finalMessage.textContent = record.message;
   dom.finalSender.textContent = record.senderName;
+  applyFinalMessageLengthClasses(record.message);
 
   const uploadedImages = Array.isArray(record.images)
     ? record.images.filter((item) => typeof item?.dataUrl === "string" && item.dataUrl.startsWith("data:image/"))
@@ -190,6 +191,14 @@ function populateStory(record) {
   const likes = Number.isFinite(Number(record.likes)) ? Math.max(0, Number(record.likes)) : 0;
   state.record.likes = likes;
   updateLikeCount();
+}
+
+// 长祝福在结尾屏采用紧凑排版，完整展示正文和发送人，避免手机端出现嵌套滚动。
+function applyFinalMessageLengthClasses(message) {
+  const length = Array.from(message.trim()).length;
+  const finalContent = dom.finalMessage.closest(".final-content");
+  finalContent?.classList.toggle("is-long-copy", length > 110);
+  finalContent?.classList.toggle("is-max-copy", length > 190);
 }
 
 // 长昵称在手机端采用分级字号，避免片头、首屏署名被撑出视口。

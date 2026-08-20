@@ -305,6 +305,7 @@ async function renderCardImage(record, shareUrl) {
   dom.cardDate.dateTime = record.birthday;
   dom.cardMessage.textContent = record.message;
   dom.cardSender.textContent = `— 来自${record.senderName}`;
+  applyCardContentClasses(record);
   await renderCardQrCode(shareUrl);
 
   if (document.fonts?.ready) await document.fonts.ready;
@@ -333,6 +334,18 @@ async function renderCardImage(record, shareUrl) {
   dom.generatedCardImage.src = dataUrl;
   dom.modalCardImage.src = dataUrl;
   dom.downloadCardButton.href = dataUrl;
+}
+
+// 固定 4:5 贺卡需要按文字长度分级排版，避免长祝福被截图边界裁掉。
+function applyCardContentClasses(record) {
+  const messageLength = Array.from(record.message.trim()).length;
+  const recipientLength = Array.from(record.recipientName.trim()).length;
+  const senderLength = Array.from(record.senderName.trim()).length;
+
+  dom.cardTemplate.classList.toggle("is-card-long-copy", messageLength > 70);
+  dom.cardTemplate.classList.toggle("is-card-max-copy", messageLength > 160);
+  dom.cardTemplate.classList.toggle("is-card-long-recipient", recipientLength > 10);
+  dom.cardTemplate.classList.toggle("is-card-long-sender", senderLength > 10);
 }
 
 async function renderCardQrCode(shareUrl) {
