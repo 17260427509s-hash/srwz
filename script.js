@@ -121,7 +121,7 @@ async function handlePhotoSelection(event) {
   }
 
   if (files.length > availableSlots) {
-    dom.photoError.textContent = `还能上传 ${availableSlots} 张，已忽略多余照片。`;
+    dom.photoError.textContent = `最多可上传 ${MAX_IMAGES} 张；本次还能添加 ${availableSlots} 张，超出的照片已忽略。`;
   }
 
   for (const file of files.slice(0, availableSlots)) {

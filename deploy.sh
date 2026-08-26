@@ -82,7 +82,9 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now "${SERVICE_NAME}"
+systemctl enable "${SERVICE_NAME}"
+# enable --now 不会重启已在运行的服务；每次部署都要重启，确保 Node 加载最新后端代码。
+systemctl restart "${SERVICE_NAME}"
 
 echo "[6/7] 配置 Nginx..."
 cat > "/etc/nginx/sites-available/${SERVICE_NAME}" <<'EOF'
