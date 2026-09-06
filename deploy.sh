@@ -9,6 +9,9 @@ APP_DIR="/opt/birthday-blessing"
 DATA_DIR="/var/lib/birthday-blessing"
 REPOSITORY_URL="https://github.com/17260427509s-hash/srwz.git"
 SERVICE_NAME="birthday-blessing"
+DOMAIN="${DOMAIN:-srwzlove.cn}"
+WWW_DOMAIN="${WWW_DOMAIN:-www.${DOMAIN}}"
+CERTIFICATE_DIR="/etc/letsencrypt/live/${DOMAIN}"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "请使用 sudo 运行此脚本。" >&2
@@ -87,11 +90,26 @@ systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 
 echo "[6/7] 配置 Nginx..."
-cat > "/etc/nginx/sites-available/${SERVICE_NAME}" <<'EOF'
+if [[ -f "${CERTIFICATE_DIR}/fullchain.pem" && -f "${CERTIFICATE_DIR}/privkey.pem" ]]; then
+  cat > "/etc/nginx/sites-available/${SERVICE_NAME}" <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name _;
+    server_name ${DOMAIN} ${WWW_DOMAIN} _;
+
+    return 301 https://${DOMAIN}\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ${DOMAIN} ${WWW_DOMAIN};
+
+    ssl_certificate ${CERTIFICATE_DIR}/fullchain.pem;
+    ssl_certificate_key ${CERTIFICATE_DIR}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
 
     client_max_body_size 8m;
 
@@ -102,14 +120,39 @@ server {
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_read_timeout 60s;
     }
 }
 EOF
+else
+  cat > "/etc/nginx/sites-available/${SERVICE_NAME}" <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name ${DOMAIN} ${WWW_DOMAIN} _;
+
+    client_max_body_size 8m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "microphone=(self)" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 60s;
+    }
+}
+EOF
+fi
 
 rm -f /etc/nginx/sites-enabled/default
 ln -sfn "/etc/nginx/sites-available/${SERVICE_NAME}" "/etc/nginx/sites-enabled/${SERVICE_NAME}"
@@ -140,4 +183,8 @@ curl -fsS http://127.0.0.1/ >/dev/null
 echo
 echo "DEPLOY_OK"
 echo "网站服务已启动，SQLite 数据目录：${DATA_DIR}"
-echo "下一步：绑定域名并配置 HTTPS。"
+if [[ -f "${CERTIFICATE_DIR}/fullchain.pem" ]]; then
+  echo "正式网址：https://${DOMAIN}/"
+else
+  echo "域名已预配置为 ${DOMAIN}，证书签发后再次部署即可启用 HTTPS。"
+fi
