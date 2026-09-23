@@ -10,13 +10,14 @@
     <meta name="theme-color" content="#f8dfe3" />
     <title>生日放映室｜生成专属生日祝福</title>
     <link rel="icon" href="assets/templates/birthday-party/cake.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=13" />
     <script
       defer
       src="assets/vendor/html2canvas-1.4.1.min.js?v=1"
     ></script>
     <script defer src="assets/vendor/qrcode.min.js?v=1"></script>
-    <script defer src="script.js?v=11"></script>
+    <script defer src="assets/voice-recorder.js?v=1"></script>
+    <script defer src="script.js?v=12"></script>
   </head>
   <body>
     <div class="ambient-dots" aria-hidden="true">
@@ -139,6 +140,27 @@
                 </label>
                 <div id="photoPreviews" class="photo-previews" aria-live="polite"></div>
                 <p id="photoError" class="field-message" role="alert"></p>
+              </section>
+
+              <section class="media-field voice-field" aria-labelledby="voiceLabel">
+                <div class="media-heading">
+                  <h2 id="voiceLabel">语音留言 <em>（选填，一段）</em></h2>
+                  <span id="voiceTimer"></span>
+                </div>
+                <p id="voiceHint" class="voice-hint">亲口说声生日快乐，让祝福多一份温度。</p>
+                <div class="voice-actions">
+                  <button id="voiceRecord" class="voice-button" type="button">开始录音</button>
+                  <button id="voiceStop" class="voice-button" type="button" hidden>停止录音</button>
+                  <button id="voiceUpload" class="voice-button voice-button--quiet" type="button">上传音频</button>
+                  <input id="voiceFile" type="file" accept=".mp3,.m4a,.mp4,.webm,.ogg,.wav" hidden />
+                </div>
+                <p class="voice-hint">最长 60 秒，原文件不超过 2.5 MiB；支持 MP3、M4A/MP4、WebM、Ogg、WAV。重新录制或上传将替换原语音。</p>
+                <div id="voiceSaved" class="voice-saved" hidden>
+                  <audio id="voicePreview" controls preload="metadata" aria-label="试听语音留言"></audio>
+                  <button id="voiceDelete" class="voice-button voice-button--quiet" type="button">删除语音</button>
+                </div>
+                <p id="voiceStatus" class="voice-hint" role="status" aria-live="polite"></p>
+                <p id="voiceError" class="field-message" role="alert"></p>
               </section>
 
             </div>

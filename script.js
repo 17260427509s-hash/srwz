@@ -34,12 +34,17 @@ const state = {
   images: [],
   currentId: null,
   toastTimer: null,
+  generating: false,
+  voice: null,
 };
 
 const dom = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheDom();
+  state.voice = new window.BirthdayVoiceRecorder((busy) => {
+    dom.generateButton.disabled = busy || state.generating;
+  });
   bindEvents();
   updateMessageCounter();
 });
@@ -206,9 +211,12 @@ function handlePhotoRemoval(event) {
 
 async function handleGenerate(event) {
   event.preventDefault();
+  if (state.generating || state.voice.busy) return;
   updateMessageCounter();
 
   if (!dom.blessingForm.reportValidity()) return;
+  state.generating = true;
+  state.voice.setLocked(true);
   dom.storageWarning.hidden = true;
   dom.storageWarning.textContent = "";
   dom.generateButton.disabled = true;
@@ -218,14 +226,14 @@ async function handleGenerate(event) {
   const serialized = JSON.stringify(record);
 
   if (new Blob([serialized]).size >= MAX_API_RECORD_BYTES) {
-    showGenerateWarning("祝福数据接近 5 MB，请删除部分图片后重试");
+    showGenerateWarning("照片和语音合计接近 5 MB，请减少图片或语音后重试");
     restoreGenerateButton();
     return;
   }
 
   try {
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 20_000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 45_000);
     let response;
     try {
       response = await fetch("/api/blessings", {
@@ -282,6 +290,7 @@ function buildRecord() {
     email: "",
     templateId: null,
     images: state.images.map((image) => ({ ...image })),
+    audio: state.voice.audio ? { ...state.voice.audio } : null,
   };
 }
 
@@ -376,6 +385,8 @@ async function renderCardQrCode(shareUrl) {
 }
 
 function restoreGenerateButton() {
+  state.generating = false;
+  state.voice.setLocked(false);
   dom.generateButton.disabled = false;
   dom.generateButton.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v11H4zM12 10v11M2 7h20v3H2zM12 7H7.5a2.5 2.5 0 1 1 2.5-2.5C10 6 12 7 12 7Zm0 0h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7Z" /></svg>立即生成`;
 }

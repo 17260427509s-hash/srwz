@@ -473,6 +473,17 @@ a:focus-visible {
   min-width: 0;
 }
 
+.voice-field { padding: 18px; border: 1px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); }
+.voice-hint { margin: 9px 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.voice-actions, .voice-saved { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.voice-saved[hidden] { display: none; }
+.voice-button { min-height: 44px; padding: 9px 15px; border: 1px solid var(--accent); border-radius: 9px; color: white; background: var(--accent); cursor: pointer; }
+.voice-button--quiet { color: var(--ink, #554b48); background: white; }
+.voice-button:disabled { opacity: .55; cursor: wait; }
+.voice-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.voice-saved audio { flex: 1 1 200px; width: 100%; min-width: 0; max-width: 100%; height: 44px; }
+#voiceTimer { font-variant-numeric: tabular-nums; }
+
 .media-heading {
   min-height: 27px;
   margin-bottom: 9px;

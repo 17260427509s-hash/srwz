@@ -101,6 +101,11 @@ async function init() {
   populateStory(state.record);
   buildLetterReveal("Happy Birthday");
   setupBackgroundMusic();
+  state.voicePlayer = new window.BirthdayVoicePlayer(state.record.audio, {
+    music: dom.backgroundMusic,
+    isMuted: () => state.musicMuted,
+    resumeMusic: startBackgroundMusic,
+  });
   bindEvents();
   createFloatingDecorations();
   setupObserver();
@@ -236,6 +241,10 @@ function bindEvents() {
   dom.musicToggle.addEventListener("click", toggleBackgroundMusic);
   dom.skipIntroButton.addEventListener("click", skipCinematicIntro);
   window.addEventListener("pagehide", clearIntroTimers);
+  window.addEventListener("pagehide", () => {
+    state.voicePlayer?.stop(false, false);
+    dom.backgroundMusic.pause();
+  });
   document.addEventListener("visibilitychange", handleMusicVisibilityChange);
   dom.storyScroller.querySelectorAll(".next-button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -379,6 +388,7 @@ function setupBackgroundMusic() {
 }
 
 async function startBackgroundMusic() {
+  if (state.voicePlayer?.active || document.hidden) return;
   if (!state.musicAvailable || state.musicMuted || !dom.backgroundMusic.paused) return;
   try {
     await dom.backgroundMusic.play();
@@ -402,6 +412,7 @@ function toggleBackgroundMusic() {
   }
 
   state.musicMuted = false;
+  state.voicePlayer?.stop(false, false);
   persistMusicPreference();
   announceMusicStatus("背景音乐已开启");
   void startBackgroundMusic();
@@ -432,6 +443,11 @@ function announceMusicStatus(message) {
 }
 
 function handleMusicVisibilityChange() {
+  if (document.hidden) {
+    state.voicePlayer?.stop(false, false);
+    dom.backgroundMusic.pause();
+    return;
+  }
   if (!document.hidden && !dom.musicToggle.hidden && !state.musicMuted) {
     void startBackgroundMusic();
   }
@@ -463,6 +479,7 @@ function updateProgress(index, total) {
 }
 
 function replayStory() {
+  state.voicePlayer?.stop(true, true);
   state.finalCelebrated = false;
   dom.storyScroller.scrollTo({ top: 0, behavior: "smooth" });
 }

@@ -54,7 +54,40 @@ $env:PORT=8080; node server.js
 
 返回对应的完整祝福记录；不存在时返回 HTTP 404。
 
-当前第一版会把压缩后的图片以 Data URL 直接保存到 SQLite，暂不提供语音留言入口。服务端仍保留音频字段兼容旧记录；JSON 请求体限制为 6 MB，清洗后的单条记录限制为 5 MB，单张图片不超过约 2.5 MB。这适合个人项目和小流量使用；如果以后访问量或图片数量增加，建议把图片迁移到 S3、Cloudflare R2、阿里云 OSS 等对象存储，SQLite 中只保存文件 URL。
+图片与可选的语音以 Data URL 保存到 SQLite。最多 7 张照片；JSON 请求体限制为 6 MB，单条记录限制为 5 MB，单张图片不超过约 2.5 MB。新增语音统一转成单声道 64 kbps MP3，沿用 `audio_json`，不迁移数据库，旧记录保持兼容。这适合个人项目和小流量使用；后续可迁移到对象存储，SQLite 中只保存文件 URL。
+
+## 语音留言：安装与验证
+
+- 表单支持一段不超过 60 秒、2.5 MiB 的录音或音频文件（MP3、M4A/MP4、WebM、Ogg、WAV）。失败的替换操作保留原语音；返回修改也会保留。
+- 直接录音必须使用 HTTPS 或本机 localhost。局域网 HTTP / 公网 IP HTTP 不具备录音所需安全上下文，但仍能上传文件。iOS 微信仅提供上传入口，提示用 Safari 或系统录音文件。
+- 麦克风只在点击开始时申请。权限请求可取消；录制接近 60 秒自动停止（预留编码尾帧），切后台或离开页面释放麦克风。
+- 结尾页可试听、暂停、拖动进度、重新播放；语音与背景音乐互斥，不改变已保存的静音选择。
+- `audio` 数据格式仍为 `{ mimeType, dataUrl, durationMs }` / `null`。服务器不信任客户端时长，实际解码验证；含视频流（包括内嵌视频封面）的文件会拒绝，超时长不截断。
+
+服务器需安装系统 FFmpeg（包含 ffprobe 与 libmp3lame 编码器）：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ffmpeg
+ffmpeg -version
+ffprobe -version
+```
+
+Windows 本地开发请安装 FFmpeg 并将其 bin 目录加入 PATH，或者在启动 Node 前指定可信二进制路径：
+
+```powershell
+$env:FFMPEG_PATH = 'C:\tools\ffmpeg\bin\ffmpeg.exe'
+$env:FFPROBE_PATH = 'C:\tools\ffmpeg\bin\ffprobe.exe'
+node server.js
+```
+
+转码采用独立临时目录、参数数组（不经过 shell）、仅本地文件协议、总计 30 秒超时、每个 Node 进程最多两个并发任务；结束即清理临时文件。请使用单个 Node 进程部署以保持全站两个并发任务上限。缺少转码工具时语音请求会返回明确的 503，纯文字和照片仍可生成。请求在转码前后都会执行 5 MB 总量检查。
+
+维护参考：[MediaRecorder 文档](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)、[FFmpeg 命令行文档](https://ffmpeg.org/ffmpeg.html)。以上仅为文档链接，网页录音和播放不请求这些网站。
+
+本地验收：在 `http://localhost:3000` 录制或上传短语音 → 试听 → 生成 → 打开分享链接 → 进入结尾 → 播放/拖动/暂停语音，检查背景音乐互斥与“再看一次”归零。使用临时 `DATABASE_PATH` 测试，不要操作生产祝福数据。iPhone Safari、微信、真实麦克风需要真机验收，桌面模拟不能代替。
+
+上线前先安装 FFmpeg，然后停止服务并备份数据库（包括已有 WAL/SHM 文件，或使用 SQLite 在线备份），再更新代码、重启服务。`deploy.sh` 已包含 FFmpeg 安装步骤，但不自动替代数据库备份。上线后用明确命名的“语音上线测试”祝福验证录音、上传、跨设备打开和播放；本次代码修改不会自动部署。
 
 详情页图片按“用户上传照片 → 旧记录中的预制模板 → 对应位置的本地故事素材图”逐个位置降级。7 张故事素材保存在 `assets/story/`；预制 SVG 全部保存在 `assets/templates/`，来自 OpenMoji，遵循 CC BY-SA 4.0 协议，继续用于兼容旧记录。
 

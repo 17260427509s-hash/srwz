@@ -22,7 +22,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "[1/7] 安装系统依赖..."
 apt-get update
-apt-get install -y --no-install-recommends ca-certificates curl gnupg git nginx build-essential python3
+apt-get install -y --no-install-recommends ca-certificates curl gnupg git nginx build-essential python3 ffmpeg
 
 if ! command -v node >/dev/null 2>&1 || [[ "$(node -p 'process.versions.node.split(`.`)[0]' 2>/dev/null || echo 0)" -lt 22 ]]; then
   echo "[2/7] 安装 Node.js 22..."

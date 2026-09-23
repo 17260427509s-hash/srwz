@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const express = require("express");
 const Database = require("better-sqlite3");
+const { normalizeAudio, AudioProcessingError } = require("./audio-processing");
 
 const app = express();
 const ROOT_DIR = __dirname;
@@ -90,12 +91,17 @@ app.use("/api/blessings", express.json({ limit: "6mb", strict: true, type: "appl
 app.post(
   "/api/blessings",
   createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 }),
-  (req, res, next) => {
+  async (req, res, next) => {
     try {
       const blessing = validateBlessing(req.body);
       const serializedSize = Buffer.byteLength(JSON.stringify(blessing), "utf8");
       if (serializedSize > MAX_STORED_BYTES) {
         return res.status(413).json({ error: "祝福数据过大，请减少图片或录音后重试" });
+      }
+
+      blessing.audio = await normalizeAudio(blessing.audio);
+      if (Buffer.byteLength(JSON.stringify(blessing), "utf8") > MAX_STORED_BYTES) {
+        return res.status(413).json({ error: "转码后的祝福数据过大，请减少图片或录音后重试" });
       }
 
       const id = createUniqueId();
@@ -116,6 +122,9 @@ app.post(
 
       res.status(201).json({ id });
     } catch (error) {
+      if (error instanceof AudioProcessingError) {
+        return res.status(error.status).json({ error: error.message });
+      }
       if (error instanceof ValidationError) {
         return res.status(400).json({ error: error.message });
       }
@@ -243,15 +252,12 @@ function validateAudio(audio) {
   if (typeof audio !== "object" || Array.isArray(audio)) throw new ValidationError("语音留言无效");
   const mimeType = typeof audio.mimeType === "string" ? audio.mimeType.toLowerCase() : "";
   const baseType = mimeType.split(";")[0];
-  if (!new Set(["audio/mp4", "audio/webm", "audio/ogg"]).has(baseType)) {
+  if (!new Set(["audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/webm", "audio/ogg", "audio/wav", "audio/x-wav", "audio/wave"]).has(baseType)) {
     throw new ValidationError("语音格式不支持");
   }
   validateDataUrl(audio.dataUrl, baseType, 2.5 * 1024 * 1024, "语音留言");
-  const durationMs = Number(audio.durationMs);
-  if (!Number.isFinite(durationMs) || durationMs < 0 || durationMs > 61_000) {
-    throw new ValidationError("语音时长无效");
-  }
-  return { mimeType, dataUrl: audio.dataUrl, durationMs: Math.round(durationMs) };
+  // 时长由服务端解码计算，客户端元数据不能用来绕过 60 秒限制。
+  return { mimeType, dataUrl: audio.dataUrl, durationMs: 0 };
 }
 
 function validateDataUrl(value, expectedType, maxBytes, label) {
@@ -259,7 +265,8 @@ function validateDataUrl(value, expectedType, maxBytes, label) {
   const escapedType = expectedType.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = value.match(new RegExp(`^data:${escapedType}(?:;[^,]*)?;base64,([A-Za-z0-9+/=]+)$`, "i"));
   if (!match) throw new ValidationError(`${label}数据格式无效`);
-  const estimatedBytes = Math.floor(match[1].length * 0.75);
+  const padding = match[1].endsWith("==") ? 2 : match[1].endsWith("=") ? 1 : 0;
+  const estimatedBytes = Math.floor(match[1].length * 0.75) - padding;
   if (estimatedBytes > maxBytes) throw new ValidationError(`${label}过大`);
 }
 
@@ -343,7 +350,8 @@ function shutdown(signal) {
     database.close();
     process.exit(0);
   });
-  setTimeout(() => process.exit(1), 10_000).unref();
+  // 给最长 30 秒的转码请求留出清理临时文件的时间。
+  setTimeout(() => process.exit(1), 35_000).unref();
 }
 
 process.on("SIGINT", () => shutdown("SIGINT"));

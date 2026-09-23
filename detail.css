@@ -879,6 +879,25 @@ body.is-intro-playing .music-toggle.is-muted { color: rgba(255,255,255,.72); }
 
 .final-content { display: grid; justify-items: center; text-align: center; }
 
+.blessing-voice { display: grid; justify-items: center; gap: 7px; width: min(100%, 360px); margin-top: 16px; }
+.blessing-voice[hidden] { display: none; }
+.blessing-voice audio { width: 100%; min-width: 0; height: 40px; }
+.voice-play-button { min-height: 44px; padding: 9px 20px; border: 1px solid var(--accent); border-radius: 999px; background: var(--paper); color: var(--accent); cursor: pointer; }
+.voice-play-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+#voicePlaybackError { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+#voicePlaybackError:empty { display: none; }
+
+/* 有语音时允许结尾屏按内容增高：小屏/横屏仍能读完整封信、操作播放器。 */
+.final-screen.has-voice { height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; }
+.has-voice .final-content { padding-block: 12px; }
+.final-screen.has-voice .final-content .letter-paper {
+  max-height: min(38vh, 360px);
+  max-height: min(38dvh, 360px);
+  justify-content: flex-start;
+  overflow: auto;
+}
+.has-voice .letter-paper > p, .has-voice .letter-paper footer { flex-shrink: 0; }
+
 .final-content h2 {
   margin: 0 0 clamp(18px, 3vh, 30px);
   color: var(--accent);
